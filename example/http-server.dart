@@ -36,24 +36,20 @@ Future<SendPort> _startHttpServer(List args) {
   });
 }
 
-/**
- * An [HttpRequest] handler setup. Gets called when with the server, and
- * is told when to stop listening.
- *
- * These callbacks allow the listener to set up handlers for HTTP requests.
- * The object should be sendable to an equivalent isolate.
- */
+/// An [HttpRequest] handler setup. Gets called when with the server, and
+/// is told when to stop listening.
+///
+/// These callbacks allow the listener to set up handlers for HTTP requests.
+/// The object should be sendable to an equivalent isolate.
 abstract class HttpListener {
   Future start(HttpServer server);
   Future stop();
 }
 
-/**
- * An [HttpListener] that sets itself up as an echo server.
- *
- * Returns the message content plus an ID describing the isolate that
- * handled the request.
- */
+/// An [HttpListener] that sets itself up as an echo server.
+///
+/// Returns the message content plus an ID describing the isolate that
+/// handled the request.
 class EchoHttpListener implements HttpListener {
   StreamSubscription _subscription;
   static int _id = new Object().hashCode;
@@ -68,7 +64,7 @@ class EchoHttpListener implements HttpListener {
         _counter.send(null);
         print("Request to $_id");
         request.response.write("#$_id\n");
-        var t0 = new DateTime.now().add(new Duration(seconds:2));
+        var t0 = new DateTime.now().add(new Duration(seconds: 2));
         while (new DateTime.now().isBefore(t0));
         print("Response from $_id");
         request.response.close();

@@ -34,7 +34,6 @@ Future<List> waitAll(int n, Future action(int n)) {
 }
 
 void testLookup() {
-
   test("lookupAll", () {
     RegistryManager regman = new RegistryManager();
     Registry registry = regman.registry;
@@ -42,14 +41,14 @@ void testLookup() {
       var element = new Element(i);
       var tag = i.isEven ? Oddity.EVEN : Oddity.ODD;
       return registry.add(element, tags: [tag]);
-    })
-    .then((_) => registry.lookup())
-    .then((all) {
+    }).then((_) {
+      return registry.lookup();
+    }).then((all) {
       expect(all.length, 10);
       expect(all.map((v) => v.id).toList()..sort(),
              [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     })
-    .then((_) { regman.close(); });
+    .whenComplete(regman.close);
   });
 
   test("lookupOdd", () {
@@ -59,14 +58,14 @@ void testLookup() {
       var element = new Element(i);
       var tag = i.isEven ? Oddity.EVEN : Oddity.ODD;
       return registry.add(element, tags: [tag]);
-    })
-    .then((_) =>registry.lookup(tags:[Oddity.ODD]))
-    .then((all) {
+    }).then((_) {
+      return registry.lookup(tags:[Oddity.ODD]);
+    }).then((all) {
       expect(all.length, 5);
       expect(all.map((v) => v.id).toList()..sort(),
              [1, 3, 5, 7, 9]);
     })
-    .then((_) { regman.close(); });
+    .whenComplete(regman.close);
   });
 
   test("lookupMax", () {
@@ -76,12 +75,12 @@ void testLookup() {
       var element = new Element(i);
       var tag = i.isEven ? Oddity.EVEN : Oddity.ODD;
       return registry.add(element, tags: [tag]);
-    })
-    .then((_) => registry.lookup(max: 5))
-    .then((all) {
+    }).then((_) {
+      return registry.lookup(max: 5);
+    }).then((all) {
       expect(all.length, 5);
     })
-    .then((_) { regman.close(); });
+    .whenComplete(regman.close);
   });
 
   test("lookupMultiTag", () {
@@ -95,14 +94,14 @@ void testLookup() {
         if (i % j == 0) tags.add(j);
       }
       return registry.add(element, tags: tags);
-    })
-    .then((_) => registry.lookup(tags: [2, 3]))
-    .then((all) {
+    }).then((_) {
+      return registry.lookup(tags: [2, 3]);
+    }).then((all) {
       expect(all.length, 5);
       expect(all.map((v) => v.id).toList()..sort(),
              [0, 6, 12, 18, 24]);
     })
-    .then((_) { regman.close(); });
+    .whenComplete(regman.close);
   });
 
   test("lookupMultiTagMax", () {
@@ -116,13 +115,13 @@ void testLookup() {
         if (i % j == 0) tags.add(j);
       }
       return registry.add(element, tags: tags);
-    })
-    .then((_) => registry.lookup(tags: [2, 3], max: 3))
-    .then((all) {
+    }).then((_) {
+      return registry.lookup(tags: [2, 3], max: 3);
+    }).then((all) {
       expect(all.length, 3);
       expect(all.every((v) => (v.id % 6) == 0), isTrue);
     })
-    .then((_) { regman.close(); });
+    .whenComplete(regman.close);
   });
 }
 
@@ -132,10 +131,10 @@ void testAddLookup() {
     Registry registry = regman.registry;
     var object = new Object();
     return registry.add(object).then((_) {
-      return registry.lookup().then((entries) {
-        expect(entries, hasLength(1));
-        expect(entries.first, same(object));
-      });
+      return registry.lookup();
+    }).then((entries) {
+      expect(entries, hasLength(1));
+      expect(entries.first, same(object));
     }).whenComplete(regman.close);
   });
 
@@ -146,14 +145,13 @@ void testAddLookup() {
     var object2 = new Object();
     var object3 = new Object();
     var objects = [object1, object2, object3];
-    return Future.wait(objects.map(registry.add))
-                 .then((_) {
-      return registry.lookup().then((entries) {
-        expect(entries, hasLength(3));
-        for (var entry in entries) {
-          expect(entry, isIn(objects));
-        }
-      });
+    return Future.wait(objects.map(registry.add)).then((_) {
+      return registry.lookup();
+    }).then((entries) {
+      expect(entries, hasLength(3));
+      for (var entry in entries) {
+        expect(entry, isIn(objects));
+      }
     }).whenComplete(regman.close);
   });
 
@@ -162,11 +160,11 @@ void testAddLookup() {
     Registry registry = regman.registry;
     var object = new Object();
     return registry.add(object).then((_) {
-      return registry.add(object).then((_) {
-        fail("Unreachable");
-      }, onError: (e, s) {
-        expect(e, isStateError);
-      });
+      return registry.add(object);
+    }).then((_) {
+      fail("Unreachable");
+    }, onError: (e, s) {
+      expect(e, isStateError);
     }).whenComplete(regman.close);
   });
 
@@ -182,16 +180,16 @@ void testAddLookup() {
       expect(entries.first, same(object));
       return registry.add(object2);
     }).then((_) {
-      return registry.lookup().then((entries) {
-        expect(entries, hasLength(2));
-        var entry1 = entries.first;
-        var entry2 = entries.last;
-        if (object == entry1) {
-          expect(entry2, same(object2));
-        } else {
-          expect(entry1, same(object));
-        }
-      });
+      return registry.lookup();
+    }).then((entries) {
+      expect(entries, hasLength(2));
+      var entry1 = entries.first;
+      var entry2 = entries.last;
+      if (object == entry1) {
+        expect(entry2, same(object2));
+      } else {
+        expect(entry1, same(object));
+      }
     }).whenComplete(regman.close);
   });
 
@@ -216,26 +214,26 @@ void testAddLookup() {
     var object1 = new Object();
     var object2 = new Object();
     var object3 = new Object();
-    return registry.add(object1, tags: [1, 3, 5, 7]).then((_){
+    return registry.add(object1, tags: [1, 3, 5, 7]).then((_) {
       return registry.add(object2, tags: [2, 3, 6, 7]);
     }).then((_) {
       return registry.add(object3, tags: [4, 5, 6, 7]);
     }).then((_) {
-      return registry.lookup(tags: [3]).then((entries) {
-        expect(entries, hasLength(2));
-        expect(entries.first == object1 || entries.last == object1, isTrue);
-        expect(entries.first == object2 || entries.last == object2, isTrue);
-      });
+      return registry.lookup(tags: [3]);
+    }).then((entries) {
+      expect(entries, hasLength(2));
+      expect(entries.first == object1 || entries.last == object1, isTrue);
+      expect(entries.first == object2 || entries.last == object2, isTrue);
     }).then((_) {
-      return registry.lookup(tags: [2]).then((entries) {
-        expect(entries, hasLength(1));
-        expect(entries.first, same(object2));
-      });
+      return registry.lookup(tags: [2]);
+    }).then((entries) {
+      expect(entries, hasLength(1));
+      expect(entries.first, same(object2));
     }).then((_) {
-      return registry.lookup(tags: [3, 6]).then((entries) {
-        expect(entries, hasLength(1));
-        expect(entries.first, same(object2));
-      });
+      return registry.lookup(tags: [3, 6]);
+    }).then((entries) {
+      expect(entries, hasLength(1));
+      expect(entries.first, same(object2));
     }).whenComplete(regman.close);
   });
 }
@@ -250,12 +248,12 @@ void testRemove() {
         expect(entries, hasLength(1));
         expect(entries.first, same(object));
         return registry.remove(object, removeCapability);
-      }).then((removeSuccess) {
-        expect(removeSuccess, isTrue);
-        return registry.lookup();
-      }).then((entries) {
-        expect(entries, isEmpty);
       });
+    }).then((removeSuccess) {
+      expect(removeSuccess, isTrue);
+      return registry.lookup();
+    }).then((entries) {
+      expect(entries, isEmpty);
     }).whenComplete(regman.close);
   });
 
@@ -268,9 +266,9 @@ void testRemove() {
         expect(entries, hasLength(1));
         expect(entries.first, same(object));
         return registry.remove(object, new Capability());
-      }).then((removeSuccess) {
-        expect(removeSuccess, isFalse);
       });
+    }).then((removeSuccess) {
+      expect(removeSuccess, isFalse);
     }).whenComplete(regman.close);
   });
 }
@@ -330,7 +328,7 @@ void testAddRemoveTags() {
     var object2 = new Object();
     var object3 = new Object();
     var objects = [object1, object2, object3];
-    return Future.wait(objects.map(registry.add)).then((_){
+    return Future.wait(objects.map(registry.add)).then((_) {
       return registry.addTags([object1, object2], ["x", "y"]);
     }).then((_) {
       return registry.addTags([object1, object3], ["z", "w"]);
@@ -351,8 +349,7 @@ void testAddRemoveTags() {
   test("Remove-wrong-object", () {
     RegistryManager regman = new RegistryManager();
     Registry registry = regman.registry;
-    expect(() => registry.removeTags([new Object()], ["x"]),
-           throws);
+    expect(() => registry.removeTags([new Object()], ["x"]), throws);
     regman.close();
   });
 }
@@ -373,8 +370,7 @@ void testCrossIsolate() {
     // Add, lookup and remove object in other isolate.
     return IsolateRunner.spawn().then((isolate) {
       isolate.run(createRegMan, 1).then((registry) {
-        return registry.add(object, tags: ["a", "b"])
-                       .then((removeCapability) {
+        return registry.add(object, tags: ["a", "b"]).then((removeCapability) {
           return registry.lookup(tags: ["a"]).then((entries) {
             expect(entries, hasLength(1));
             expect(entries.first, same(object));
@@ -459,7 +455,7 @@ void testTimeout() {
 }
 
 void testMultiRegistry() {
-  test("dual-registyr", () {
+  test("dual-registry", () {
     RegistryManager regman = new RegistryManager();
     Registry registry1 = regman.registry;
     Registry registry2 = regman.registry;
@@ -529,11 +525,14 @@ void testObjectsAndTags() {
   testObject(#symbol);
   testObject(#_privateSymbol);
   testObject(new Capability());
+  testObject(topLevelFunction);
 }
 
 class Element {
   final int id;
   Element(this.id);
   int get hashCode => id;
-  bool operator==(Object other) => other is Element && id == other.id;
+  bool operator ==(Object other) => other is Element && id == other.id;
 }
+
+void topLevelFunction() {}

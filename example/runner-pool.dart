@@ -8,7 +8,6 @@ import "package:isolate/loadbalancer.dart";
 import "package:isolate/isolaterunner.dart";
 import "dart:async" show Future, Completer;
 
-
 void main() {
   int N = 44;
   var sw = new Stopwatch()..start();

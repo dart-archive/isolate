@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * An isolate-compatible object registry and lookup service.
- */
+/// An isolate-compatible object registry and lookup service.
 library dart.pkg.isolate.registry;
 
 import "dart:async" show Future, Completer, TimeoutException;
@@ -21,28 +19,26 @@ const int _REMOVE_TAGS = 3;
 const int _GET_TAGS = 4;
 const int _FIND = 5;
 
-/**
- * An isolate-compatible object registry.
- *
- * Objects can be stored as elements of a registry,
- * have "tags" assigned to them, and be looked up by tag.
- *
- * A `Registry` object caches objects found using the [lookup]
- * method, or added using [add], and returns the same object every time
- * they are requested.
- * A different `Registry` object that works on the same registry will not
- * preserve the identity of elements
- *
- * It is recommended to only have one `Registry` object working on the
- * same registry in each isolate.
- *
- * When the registry is shared accross isolates, both elements and tags must
- * be sendable between the isolates.
- * Between isolates spawned using [Isolate.spawn] from the same initial
- * isolate, most objectes can be sent.
- * Only simple objects can be sent between isolates originating from different
- * [Isolate.spawnUri] calls.
- */
+/// An isolate-compatible object registry.
+///
+/// Objects can be stored as elements of a registry,
+/// have "tags" assigned to them, and be looked up by tag.
+///
+/// A `Registry` object caches objects found using the [lookup]
+/// method, or added using [add], and returns the same object every time
+/// they are requested.
+/// A different `Registry` object that works on the same registry will not
+/// preserve the identity of elements
+///
+/// It is recommended to only have one `Registry` object working on the
+/// same registry in each isolate.
+///
+/// When the registry is shared accross isolates, both elements and tags must
+/// be sendable between the isolates.
+/// Between isolates spawned using [Isolate.spawn] from the same initial
+/// isolate, most objectes can be sent.
+/// Only simple objects can be sent between isolates originating from different
+/// [Isolate.spawnUri] calls.
 class Registry<T> {
   // Most operations fail if they haven't received a response for this duration.
   final Duration _timeout;
@@ -53,26 +49,22 @@ class Registry<T> {
   // also copying the cache.
   static Expando _caches = new Expando();
 
-  /**
-   * Port for sending command to the central registry mananger.
-   */
+  /// Port for sending command to the central registry mananger.
   SendPort _commandPort;
 
-  /**
-   * Create a registry linked to a [RegistryManager] through [commandPort].
-   *
-   * In most cases, a registry is created by using the
-   * [RegistryManager.registry] getter.
-   *
-   * If a registry is used between isolates created using [Isolate.spawnUri],
-   * the `Registry` object can't be sent between the isolates directly.
-   * Instead the [RegistryManager.commandPort] port can be sent and a
-   * `Registry` created from the command port using this constructor.
-   *
-   * The optional [timeout] parameter can be set to the duration
-   * this registry should wait before assuming that an operation
-   * has failed.
-   */
+  /// Create a registry linked to a [RegistryManager] through [commandPort].
+  ///
+  /// In most cases, a registry is created by using the
+  /// [RegistryManager.registry] getter.
+  ///
+  /// If a registry is used between isolates created using [Isolate.spawnUri],
+  /// the `Registry` object can't be sent between the isolates directly.
+  /// Instead the [RegistryManager.commandPort] port can be sent and a
+  /// `Registry` created from the command port using this constructor.
+  ///
+  /// The optional [timeout] parameter can be set to the duration
+  /// this registry should wait before assuming that an operation
+  /// has failed.
   Registry.fromPort(SendPort commandPort,
                     {Duration timeout: const Duration(seconds: 5)})
       : _commandPort = commandPort,
@@ -86,11 +78,9 @@ class Registry<T> {
     return cache;
   }
 
-  /**
-   * Check and get the identity of an element.
-   *
-   * Throws if [element] is not an element in the registry.
-   */
+  /// Check and get the identity of an element.
+  ///
+  /// Throws if [element] is not an element in the registry.
   int _getId(T element) {
     int id = _cache.id(element);
     if (id == null) {
@@ -99,21 +89,19 @@ class Registry<T> {
     return id;
   }
 
-  /**
-   * Adds [element] to the registry with the provided tags.
-   *
-   * Fails if [element] is already in this registry.
-   * An object is already in the registry if it has been added using [add],
-   * or if it was returned by a [lookup] call on this registry object.
-   *
-   * Returns a capability that can be used with [remove] to remove
-   * the element from the registry again.
-   *
-   * The [tags] can be used to distinguish some of the elements
-   * from other elements. Any object can be used as a tag, as long as
-   * it preserves equality when sent through a [SendPort].
-   * This makes [Capability] objects a good choice for tags.
-   */
+  /// Adds [element] to the registry with the provided tags.
+  ///
+  /// Fails if [element] is already in this registry.
+  /// An object is already in the registry if it has been added using [add],
+  /// or if it was returned by a [lookup] call on this registry object.
+  ///
+  /// Returns a capability that can be used with [remove] to remove
+  /// the element from the registry again.
+  ///
+  /// The [tags] can be used to distinguish some of the elements
+  /// from other elements. Any object can be used as a tag, as long as
+  /// it preserves equality when sent through a [SendPort].
+  /// This makes [Capability] objects a good choice for tags.
   Future<Capability> add(T element, {Iterable tags}) {
     _RegistryCache cache = _cache;
     if (cache.contains(element)) {
@@ -139,16 +127,14 @@ class Registry<T> {
     return completer.future;
   }
 
-  /**
-   * Remove the element from the registry.
-   *
-   * Returns `true` if removing the element succeeded, or `false` if the
-   * elements wasn't in the registry, or if it couldn't be removed.
-   *
-   * The [removeCapability] must be the same capability returned by [add]
-   * when the object was added. If the capability is wrong, the
-   * object is not removed, and this function returns false.
-   */
+  /// Remove the element from the registry.
+  ///
+  /// Returns `true` if removing the element succeeded, or `false` if the
+  /// elements wasn't in the registry, or if it couldn't be removed.
+  ///
+  /// The [removeCapability] must be the same capability returned by [add]
+  /// when the object was added. If the capability is wrong, the
+  /// object is not removed, and this function returns false.
   Future<bool> remove(T element, Capability removeCapability) {
     int id = _cache.id(element);
     if (id == null) {
@@ -163,31 +149,27 @@ class Registry<T> {
     return completer.future;
   }
 
-  /**
-   * Add tags to an object in the registry.
-   *
-   * Each element of the registry has a number of tags associated with
-   * it. A tag is either associated with an element or not, adding it more
-   * than once does not make any difference.
-   *
-   * Tags are compared using [Object.==] equality.
-   *
-   * Fails if any of the elements are not in the registry.
-   */
+  /// Add tags to an object in the registry.
+  ///
+  /// Each element of the registry has a number of tags associated with
+  /// it. A tag is either associated with an element or not, adding it more
+  /// than once does not make any difference.
+  ///
+  /// Tags are compared using [Object.==] equality.
+  ///
+  /// Fails if any of the elements are not in the registry.
   Future addTags(Iterable<T> elements, Iterable tags) {
     List ids = elements.map(_getId).toList(growable: false);
     return _addTags(ids, tags);
   }
 
-  /**
-   * Remove tags from an object in the registry.
-   *
-   * After this operation, the [elements] will not be associated to the [tags].
-   * It doesn't matter whether the elements were associated with the tags
-   * before or not.
-   *
-   * Fails if any of the elements are not in the registry.
-   */
+  /// Remove tags from an object in the registry.
+  ///
+  /// After this operation, the [elements] will not be associated to the [tags].
+  /// It doesn't matter whether the elements were associated with the tags
+  /// before or not.
+  ///
+  /// Fails if any of the elements are not in the registry.
   Future removeTags(Iterable<T> elements, Iterable tags) {
     List ids = elements.map(_getId).toList(growable: false);
     tags = tags.toList(growable: false);
@@ -205,17 +187,15 @@ class Registry<T> {
     return completer.future;
   }
 
-  /**
-   * Finds a number of elements that have all the desired [tags].
-   *
-   * If [tags] is omitted or empty, any element of the registry can be
-   * returned.
-   *
-   * If [max] is specified, it must be greater than zero.
-   * In that case, at most the first `max` results are returned,
-   * in whatever order the registry finds its results.
-   * Otherwise all matching elements are returned.
-   */
+  /// Finds a number of elements that have all the desired [tags].
+  ///
+  /// If [tags] is omitted or empty, any element of the registry can be
+  /// returned.
+  ///
+  /// If [max] is specified, it must be greater than zero.
+  /// In that case, at most the first `max` results are returned,
+  /// in whatever order the registry finds its results.
+  /// Otherwise all matching elements are returned.
   Future<List<T>> lookup({Iterable tags, int max}) {
     if (max != null && max < 1) {
       throw new RangeError.range(max, 1, null, "max");
@@ -240,12 +220,10 @@ class Registry<T> {
   }
 }
 
-/**
- * Isolate-local cache used by a [Registry].
- *
- * Maps between id-numbers and elements.
- * An object is considered an element of the registry if it
- */
+/// Isolate-local cache used by a [Registry].
+///
+/// Maps between id-numbers and elements.
+/// An object is considered an element of the registry if it
 class _RegistryCache {
   // Temporary marker until an object gets an id.
   static const int _BEING_ADDED = -1;
@@ -259,7 +237,7 @@ class _RegistryCache {
     return result;
   }
 
-  Object operator[](int id) => id2object[id];
+  Object operator [](int id) => id2object[id];
 
   // Register a pair of id/object in the cache.
   // if the id is already in the cache, just return the existing
@@ -274,7 +252,7 @@ class _RegistryCache {
 
   bool isAdding(element) => object2id[element] == _BEING_ADDED;
 
-  void setAdding(element)  {
+  void setAdding(element) {
     assert(!contains(element));
     object2id[element] = _BEING_ADDED;
   }
@@ -294,56 +272,46 @@ class _RegistryCache {
   bool contains(element) => object2id.containsKey(element);
 }
 
-/**
- * The central repository used by distributed [Registry] instances.
- */
+/// The central repository used by distributed [Registry] instances.
 class RegistryManager {
   final Duration _timeout;
   int _nextId = 0;
   RawReceivePort _commandPort;
 
-  /**
-   * Maps id to entry. Each entry contains the id, the element, its tags,
-   * and a capability required to remove it again.
-   */
+  /// Maps id to entry. Each entry contains the id, the element, its tags,
+  /// and a capability required to remove it again.
   Map<int, _RegistryEntry> _entries = new HashMap();
   Map<Object, Set<int>> _tag2id = new HashMap();
 
-  /**
-   * Create a new registry managed by the created [RegistryManager].
-   *
-   * The optional [timeout] parameter can be set to the duration
-   * registry objects should wait before assuming that an operation
-   * has failed.
-   */
+  /// Create a new registry managed by the created [RegistryManager].
+  ///
+  /// The optional [timeout] parameter can be set to the duration
+  /// registry objects should wait before assuming that an operation
+  /// has failed.
   RegistryManager({timeout: const Duration(seconds: 5)})
       : _timeout = timeout,
         _commandPort = new RawReceivePort() {
-      _commandPort.handler = _handleCommand;
+    _commandPort.handler = _handleCommand;
   }
 
-  /**
-   * The command port receiving commands for the registry manager.
-   *
-   * Use this port with [Registry.fromPort] to link a registry to the
-   * manager in isolates where you can't send a [Registry] object directly.
-   */
+  /// The command port receiving commands for the registry manager.
+  ///
+  /// Use this port with [Registry.fromPort] to link a registry to the
+  /// manager in isolates where you can't send a [Registry] object directly.
   SendPort get commandPort => _commandPort.sendPort;
 
-  /**
-   * Get a registry backed by this manager.
-   *
-   * This registry can be sent to other isolates created using
-   * [Isolate.spawn].
-   */
-  Registry get registry => new Registry.fromPort(_commandPort.sendPort,
-                                                 timeout: _timeout);
+  /// Get a registry backed by this manager.
+  ///
+  /// This registry can be sent to other isolates created using
+  /// [Isolate.spawn].
+  Registry get registry =>
+      new Registry.fromPort(_commandPort.sendPort, timeout: _timeout);
 
   // Used as argument to putIfAbsent.
   static Set _createSet() => new HashSet();
 
   void _handleCommand(List command) {
-    switch(command[0]) {
+    switch (command[0]) {
       case _ADD:
         _add(command[1], command[2], command[3]);
         return;
@@ -477,17 +445,15 @@ class RegistryManager {
     replyPort.send(result);
   }
 
-  /**
-   * Shut down the registry service.
-   *
-   * After this, all [Registry] operations will time out.
-   */
+  /// Shut down the registry service.
+  ///
+  /// After this, all [Registry] operations will time out.
   void close() {
     _commandPort.close();
   }
 }
 
-/** Entry in [RegistryManager]. */
+/// Entry in [RegistryManager].
 class _RegistryEntry {
   final int id;
   final Object element;

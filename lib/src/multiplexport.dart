@@ -2,27 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A multiplexing [RawReceivePort].
- *
- * Allows creating a number of [RawReceivePort] implementations that all send
- * messages through the same real `RawReceivePort`.
- *
- * This allows reducing the number of receive ports created, but adds an
- * overhead to each message.
- * If a library creates many short-lived receive ports, multiplexing might be
- * faster.
- *
- * To use multiplexing receive ports, create and store a
- * [RawReceivePortMultiplexer], and create receive ports by calling
- * `multiplexer.createRawReceivePort(handler)` where you would otherwise
- * write `new RawReceivePort(handler)`.
- *
- * Remember to [close] the multiplexer when it is no longer needed.
- * `
- * (TODO: Check if it really is faster - creating a receive port requires a
- * global mutex, so it may be a bottleneck, but it's not clear how slow it is).
- */
+/// A multiplexing [RawReceivePort].
+///
+/// Allows creating a number of [RawReceivePort] implementations that all send
+/// messages through the same real `RawReceivePort`.
+///
+/// This allows reducing the number of receive ports created, but adds an
+/// overhead to each message.
+/// If a library creates many short-lived receive ports, multiplexing might be
+/// faster.
+///
+/// To use multiplexing receive ports, create and store a
+/// [RawReceivePortMultiplexer], and create receive ports by calling
+/// `multiplexer.createRawReceivePort(handler)` where you would otherwise
+/// write `new RawReceivePort(handler)`.
+///
+/// Remember to [close] the multiplexer when it is no longer needed.
+/// `
+/// (TODO: Check if it really is faster - creating a receive port requires a
+/// global mutex, so it may be a bottleneck, but it's not clear how slow it is).
 library pkg.isolate.multiplexreceiveport;
 
 import "dart:isolate";
@@ -46,7 +44,9 @@ class _MultiplexRawReceivePort implements RawReceivePort {
 
   SendPort get sendPort => _multiplexer._createSendPort(_id);
 
-  void _invokeHandler(message) { _handler(message); }
+  void _invokeHandler(message) {
+    _handler(message);
+  }
 }
 
 class _MultiplexSendPort implements SendPort {
@@ -59,10 +59,8 @@ class _MultiplexSendPort implements SendPort {
   }
 }
 
-/**
- * A shared [RawReceivePort] that distributes messages to
- * [RawReceivePort] instances that it manages.
- */
+/// A shared [RawReceivePort] that distributes messages to
+/// [RawReceivePort] instances that it manages.
 class RawReceivePortMultiplexer {
   final RawReceivePort _port = new RawReceivePort();
   final Map<int, _MultiplexRawReceivePort> _map = new HashMap();

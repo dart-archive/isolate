@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // TODO(lrn): This should be in package:async?
-/**
- * Helper functions for working with errors.
- *
- * The [MultiError] class combines multiple errors into one object,
- * and the [MultiError.wait] function works like [Future.wait] except
- * that it returns all the errors.
- */
+/// Helper functions for working with errors.
+///
+/// The [MultiError] class combines multiple errors into one object,
+/// and the [MultiError.wait] function works like [Future.wait] except
+/// that it returns all the errors.
 library pkg.isolate.errors;
 
 import "dart:async";
@@ -23,29 +21,25 @@ class MultiError extends Error {
   // Minimum number of lines in the toString for each error.
   static const int _MIN_LINES_PER_ERROR = 1;
 
-  /** The actual errors. */
+  /// The actual errors.
   final List errors;
 
-  /**
-   * Create a `MultiError` based on a list of errors.
-   *
-   * The errors represent errors of a number of individual operations.
-   *
-   * The list may contain `null` values, if the index of the error in the
-   * list is useful.
-   */
+  /// Create a `MultiError` based on a list of errors.
+  ///
+  /// The errors represent errors of a number of individual operations.
+  ///
+  /// The list may contain `null` values, if the index of the error in the
+  /// list is useful.
   MultiError(this.errors);
 
-  /**
-   * Waits for all [futures] to complete, like [Future.wait].
-   *
-   * Where `Future.wait` only reports one error, even if multiple
-   * futures complete with errors, this function will complete
-   * with a [MultiError] if more than one future completes with an error.
-   *
-   * The order of values is not preserved (if that is needed, use
-   * [wait]).
-   */
+  /// Waits for all [futures] to complete, like [Future.wait].
+  ///
+  /// Where `Future.wait` only reports one error, even if multiple
+  /// futures complete with errors, this function will complete
+  /// with a [MultiError] if more than one future completes with an error.
+  ///
+  /// The order of values is not preserved (if that is needed, use
+  /// [wait]).
   static Future<List> waitUnordered(Iterable<Future> futures,
                                     {cleanUp(successResult)}) {
     Completer completer;
@@ -95,19 +89,16 @@ class MultiError extends Error {
     return completer.future;
   }
 
-  /**
-   * Waits for all [futures] to complete, like [Future.wait].
-   *
-   * Where `Future.wait` only reports one error, even if multiple
-   * futures complete with errors, this function will complete
-   * with a [MultiError] if more than one future completes with an error.
-   *
-   * The order of values is preserved, and if any error occurs, the
-   * [MultiError.errors] list will have errors in the corresponding slots,
-   * and `null` for non-errors.
-   */
-  Future<List> wait(Iterable<Future> futures,
-                    {cleanUp(successResult)}) {
+  /// Waits for all [futures] to complete, like [Future.wait].
+  ///
+  /// Where `Future.wait` only reports one error, even if multiple
+  /// futures complete with errors, this function will complete
+  /// with a [MultiError] if more than one future completes with an error.
+  ///
+  /// The order of values is preserved, and if any error occurs, the
+  /// [MultiError.errors] list will have errors in the corresponding slots,
+  /// and `null` for non-errors.
+  Future<List> wait(Iterable<Future> futures, {cleanUp(successResult)}) {
     Completer completer;
     int count = 0;
     bool hasError = false;
@@ -155,7 +146,6 @@ class MultiError extends Error {
     completer = new Completer();
     return completer.future;
   }
-
 
   String toString() {
     StringBuffer buffer = new StringBuffer();

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A load-balancing runner pool.
- */
+/// A load-balancing runner pool.
 library dart.pkg.isolate.loadbalancer;
 
 import "runner.dart";
@@ -12,12 +10,10 @@ import "src/errors.dart";
 import "src/lists.dart";
 import "dart:async" show Future;
 
-/**
- * A pool of runners, ordered by load.
- *
- * Keeps a pool of runners,
- * and allows running function through the runner with the lowest current load.
- */
+/// A pool of runners, ordered by load.
+///
+/// Keeps a pool of runners,
+/// and allows running function through the runner with the lowest current load.
 class LoadBalancer implements Runner {
   // A heap-based priority queue of entries, prioritized by `load`.
   // Each entry has its own entry in the queue, for faster update.
@@ -29,9 +25,7 @@ class LoadBalancer implements Runner {
   // Whether [stop] has been called.
   Future _stopFuture = null;
 
-  /**
-   * Create a load balancer for [service] with [size] isolates.
-   */
+  /// Create a load balancer for [service] with [size] isolates.
   LoadBalancer(Iterable<Runner> runners) : this._(_createEntries(runners));
 
   LoadBalancer._(List<_LoadBalancerEntry> entries)
@@ -42,19 +36,15 @@ class LoadBalancer implements Runner {
     }
   }
 
-  /**
-   * The number of runners currently in the pool.
-   */
+  /// The number of runners currently in the pool.
   int get length => _length;
 
-  /**
-   * Asynchronously create [size] runners and create a `LoadBalancer` of those.
-   *
-   * This is a helper function that makes it easy to create a `LoadBalancer`
-   * with asynchronously created runners, for example:
-   *
-   *     var isolatePool = LoadBalancer.create(10, IsolateRunner.spawn);
-   */
+  /// Asynchronously create [size] runners and create a `LoadBalancer` of those.
+  ///
+  /// This is a helper function that makes it easy to create a `LoadBalancer`
+  /// with asynchronously created runners, for example:
+  ///
+  ///     var isolatePool = LoadBalancer.create(10, IsolateRunner.spawn);
   static Future<LoadBalancer> create(int size, Future<Runner> createRunner()) {
     return Future.wait(new Iterable.generate(size, (_) => createRunner()),
                        cleanUp: (Runner runner) { runner.close(); })
@@ -66,19 +56,17 @@ class LoadBalancer implements Runner {
     return new List<_LoadBalancerEntry>.from(entries, growable: false);
   }
 
-  /**
-   * Execute the command in the currently least loaded isolate.
-   *
-   * The optional [load] parameter represents the load that the command
-   * is causing on the isolate where it runs.
-   * The number has no fixed meaning, but should be seen as relative to
-   * other commands run in the same load balancer.
-   * The `load` must not be negative.
-   *
-   * If [timeout] and [onTimeout] are provided, they are forwarded to
-   * the runner running the function, which will handle a timeout
-   * as normal.
-   */
+  /// Execute the command in the currently least loaded isolate.
+  ///
+  /// The optional [load] parameter represents the load that the command
+  /// is causing on the isolate where it runs.
+  /// The number has no fixed meaning, but should be seen as relative to
+  /// other commands run in the same load balancer.
+  /// The `load` must not be negative.
+  ///
+  /// If [timeout] and [onTimeout] are provided, they are forwarded to
+  /// the runner running the function, which will handle a timeout
+  /// as normal.
   Future run(function(argument), argument, {Duration timeout,
                                             onTimeout(),
                                             int load: 100}) {
@@ -88,22 +76,20 @@ class LoadBalancer implements Runner {
     return entry.run(this, load, function, argument, timeout, onTimeout);
   }
 
-  /**
-   * Execute the same function in the least loaded [count] isolates.
-   *
-   * This guarantees that the function isn't run twice in the same isolate,
-   * so `count` is not allowed to exceed [length].
-   *
-   * The optional [load] parameter represents the load that the command
-   * is causing on the isolate where it runs.
-   * The number has no fixed meaning, but should be seen as relative to
-   * other commands run in the same load balancer.
-   * The `load` must not be negative.
-   *
-   * If [timeout] and [onTimeout] are provided, they are forwarded to
-   * the runners running the function, which will handle any timeouts
-   * as normal.
-   */
+  /// Execute the same function in the least loaded [count] isolates.
+  ///
+  /// This guarantees that the function isn't run twice in the same isolate,
+  /// so `count` is not allowed to exceed [length].
+  ///
+  /// The optional [load] parameter represents the load that the command
+  /// is causing on the isolate where it runs.
+  /// The number has no fixed meaning, but should be seen as relative to
+  /// other commands run in the same load balancer.
+  /// The `load` must not be negative.
+  ///
+  /// If [timeout] and [onTimeout] are provided, they are forwarded to
+  /// the runners running the function, which will handle any timeouts
+  /// as normal.
   List<Future> runMultiple(int count, function(argument), argument,
                            {Duration timeout,
                             onTimeout(),
@@ -120,8 +106,8 @@ class LoadBalancer implements Runner {
       for (int i = 0; i < count; i++) {
         _LoadBalancerEntry entry = _queue[i];
         entry.load += load;
-        result[i] = entry.run(this, load, function, argument,
-                              timeout, onTimeout);
+        result[i] =
+            entry.run(this, load, function, argument, timeout, onTimeout);
       }
     } else {
       // Remove the [count] least loaded services and run the
@@ -136,8 +122,8 @@ class LoadBalancer implements Runner {
         _LoadBalancerEntry entry = entries[i];
         entry.load += load;
         _add(entry);
-        result[i] = entry.run(this, load, function, argument,
-                              timeout, onTimeout);
+        result[i] =
+            entry.run(this, load, function, argument, timeout, onTimeout);
       }
     }
     return result;
@@ -145,8 +131,8 @@ class LoadBalancer implements Runner {
 
   Future close() {
     if (_stopFuture != null) return _stopFuture;
-    _stopFuture = MultiError.waitUnordered(_queue.take(_length)
-                                                 .map((e) => e.close()));
+    _stopFuture =
+        MultiError.waitUnordered(_queue.take(_length).map((e) => e.close()));
     // Remove all entries.
     for (int i = 0; i < _length; i++) _queue[i].queueIndex = -1;
     _queue = null;
@@ -154,13 +140,11 @@ class LoadBalancer implements Runner {
     return _stopFuture;
   }
 
-  /**
-   * Place [element] in heap at [index] or above.
-   *
-   * Put element into the empty cell at `index`.
-   * While the `element` has higher priority than the
-   * parent, swap it with the parent.
-   */
+  /// Place [element] in heap at [index] or above.
+  ///
+  /// Put element into the empty cell at `index`.
+  /// While the `element` has higher priority than the
+  /// parent, swap it with the parent.
   void _bubbleUp(_LoadBalancerEntry element, int index) {
     while (index > 0) {
       int parentIndex = (index - 1) ~/ 2;
@@ -174,13 +158,11 @@ class LoadBalancer implements Runner {
     element.queueIndex = index;
   }
 
-  /**
-   * Place [element] in heap at [index] or above.
-   *
-   * Put element into the empty cell at `index`.
-   * While the `element` has lower priority than either child,
-   * swap it with the highest priority child.
-   */
+  /// Place [element] in heap at [index] or above.
+  ///
+  /// Put element into the empty cell at `index`.
+  /// While the `element` has lower priority than either child,
+  /// swap it with the highest priority child.
   void _bubbleDown(_LoadBalancerEntry element, int index) {
     while (true) {
       int childIndex = index * 2 + 1;  // Left child index.
@@ -203,12 +185,10 @@ class LoadBalancer implements Runner {
     element.queueIndex = index;
   }
 
-  /**
-   * Removes the entry from the queue, but doesn't stop its service.
-   *
-   * The entry is expected to be either added back to the queue
-   * immediately or have its stop method called.
-   */
+  /// Removes the entry from the queue, but doesn't stop its service.
+  ///
+  /// The entry is expected to be either added back to the queue
+  /// immediately or have its stop method called.
   void _remove(_LoadBalancerEntry entry) {
     int index = entry.queueIndex;
     if (index < 0) return;
@@ -225,9 +205,7 @@ class LoadBalancer implements Runner {
     }
   }
 
-  /**
-   * Adds entry to the queue.
-   */
+  /// Adds entry to the queue.
   void _add(_LoadBalancerEntry entry) {
     if (_stopFuture != null) throw new StateError("LoadBalancer is stopped");
     assert(entry.queueIndex < 0);
@@ -283,10 +261,9 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
   // The service used to send commands to the other isolate.
   Runner runner;
 
-  _LoadBalancerEntry(Runner runner)
-      : runner = runner;
+  _LoadBalancerEntry(Runner runner) : runner = runner;
 
-  /** Whether the entry is still in the queue. */
+  /// Whether the entry is still in the queue.
   bool get inQueue => queueIndex >= 0;
 
   Future run(LoadBalancer balancer, int load, function(argumen), argument,
@@ -301,5 +278,3 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
 
   int compareTo(_LoadBalancerEntry other) => load - other.load;
 }
-
-
