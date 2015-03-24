@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.pkg.isolate.sample.runners;
+library isolate.example.runner_pool;
 
-import "package:isolate/loadbalancer.dart";
-import "package:isolate/isolaterunner.dart";
-import "dart:async" show Future, Completer;
+import 'dart:async' show Future, Completer;
+
+import 'package:isolate/load_balancer.dart';
+import 'package:isolate/isolate_runner.dart';
 
 void main() {
   int N = 44;

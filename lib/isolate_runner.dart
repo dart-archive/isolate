@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.pkg.isolate.isolaterunner;
+library isolate.isolate_runner;
 
-import "dart:isolate";
 import "dart:async";
-import "runner.dart";
-import "ports.dart";
-import "src/lists.dart";
+import "dart:isolate";
+
+import 'ports.dart';
+import 'runner.dart';
+import 'src/lists.dart';
 
 // Command tags. Shared between IsolateRunner and IsolateRunnerRemote.
 const int _SHUTDOWN = 0;
@@ -133,7 +134,6 @@ class IsolateRunner implements Runner {
   }
 
   static bool _kTrue(_) => true;
-  static bool _kFalse() => false;
 
   /// Pauses the isolate.
   ///

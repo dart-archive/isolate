@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// An isolate-compatible object registry and lookup service.
-library dart.pkg.isolate.registry;
+library isolate.registry;
 
-import "dart:async" show Future, Completer, TimeoutException;
-import "dart:isolate" show RawReceivePort, SendPort, Capability;
-import "dart:collection" show HashMap, HashSet;
-import "ports.dart";
-import "src/lists.dart";
+import 'dart:async' show Future, Completer, TimeoutException;
+import 'dart:collection' show HashMap, HashSet;
+import 'dart:isolate' show RawReceivePort, SendPort, Capability;
+
+import 'ports.dart';
+import 'src/lists.dart';
 
 // Command tags.
 const int _ADD = 0;

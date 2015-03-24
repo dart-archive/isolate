@@ -8,9 +8,9 @@
 /// The [MultiError] class combines multiple errors into one object,
 /// and the [MultiError.wait] function works like [Future.wait] except
 /// that it returns all the errors.
-library pkg.isolate.errors;
+library isolate.errors;
 
-import "dart:async";
+import 'dart:async';
 
 class MultiError extends Error {
   // Limits the number of lines included from each error's error message.

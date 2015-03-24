@@ -4,9 +4,9 @@
 
 /// A [Runner] runs a function, potentially in a different scope
 /// or even isolate.
-library dart.pkg.isolate.runner;
+library isolate.runner;
 
-import "dart:async" show Future;
+import 'dart:async' show Future;
 
 /// Calls a function with an argument.
 ///

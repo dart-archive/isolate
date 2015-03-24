@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A load-balancing runner pool.
-library dart.pkg.isolate.loadbalancer;
+library isolate.load_balancer;
 
-import "runner.dart";
-import "src/errors.dart";
-import "src/lists.dart";
-import "dart:async" show Future;
+import 'dart:async' show Future;
+
+import 'runner.dart';
+import 'src/errors.dart';
+import 'src/lists.dart';
 
 /// A pool of runners, ordered by load.
 ///

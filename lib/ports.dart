@@ -17,10 +17,11 @@
 ///
 /// Other functions intercept the returned value and either
 /// does something with it, or puts it into a [Future] or [Completer].
-library dart.pkg.isolate.ports;
+library isolate.ports;
 
-import "dart:isolate";
 import "dart:async";
+import "dart:isolate";
+
 import "src/lists.dart";
 
 /// Create a [SendPort] that accepts only one message.
@@ -299,7 +300,8 @@ class SingleResponseChannel {
         _receivePort.close();
         if (!_completer.isCompleted) {
           if (throwOnTimeout) {
-            _completer.completeError(new TimeoutException(timeout));
+            _completer.completeError(
+                new TimeoutException('Timeout waiting for response', timeout));
           } else if (onTimeout != null) {
             _completer.complete(new Future.sync(onTimeout));
           } else {

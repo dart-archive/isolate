@@ -4,12 +4,13 @@
 
 library dart.pkg.isolate.test.registry;
 
-import "package:isolate/isolaterunner.dart";
-import "package:isolate/registry.dart";
-import "dart:async";
-import "dart:isolate";
+import 'dart:async';
+import 'dart:isolate';
 
-import "package:unittest/unittest.dart";
+import 'package:isolate/isolate_runner.dart';
+import 'package:isolate/registry.dart';
+
+import 'package:unittest/unittest.dart';
 
 const MS = const Duration(milliseconds: 1);
 

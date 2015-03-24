@@ -11,7 +11,7 @@ for creating `SendPort`s and reacting to values sent to those ports.
 
 ### Working with isolates and running functions in other isolates.
 
-The "isolaterunner.dart" sub-library introduces an `IsolateRunner` class
+The "isolate_runner.dart" sub-library introduces an `IsolateRunner` class
 that gives easy access to the `Isolate` functionality, and also
 gives a way to run new functions in the isolate repeatedly, instead of
 just on the initial `spawn` call.
@@ -23,7 +23,7 @@ object registry, and give access to it accross different isolates.
 
 ### Balancing load accross several isolates.
 
-The "loadbalancer.dart" sub-library can manage multiple `Runner` objects,
+The "load_balancer.dart" sub-library can manage multiple `Runner` objects,
 including `IsolateRunner`, and run functions on the currently least loaded
 runner.
 

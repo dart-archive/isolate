@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.pkg.isolate.sample.httpserver;
+library isolate.example.http_server;
 
-import "dart:io";
 import "dart:async";
+import "dart:io";
 import "dart:isolate";
-import "package:isolate/isolaterunner.dart";
-import "package:isolate/runner.dart";
+
+import 'package:isolate/isolate_runner.dart';
 import "package:isolate/ports.dart";
+import "package:isolate/runner.dart";
 
 typedef Future RemoteStop();
 

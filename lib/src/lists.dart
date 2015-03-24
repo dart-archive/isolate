@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Utility functions to create fixed-length lists.
-library pkg.isolate.util.lists;
+library isolate.lists;
 
 /// Create a single-element fixed-length list.
 List list1(v1) => new List(1)..[0] = v1;

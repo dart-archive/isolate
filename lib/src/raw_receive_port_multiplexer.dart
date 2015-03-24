@@ -18,14 +18,15 @@
 /// write `new RawReceivePort(handler)`.
 ///
 /// Remember to [close] the multiplexer when it is no longer needed.
-/// `
+///
 /// (TODO: Check if it really is faster - creating a receive port requires a
 /// global mutex, so it may be a bottleneck, but it's not clear how slow it is).
-library pkg.isolate.multiplexreceiveport;
+library isolate.raw_receive_port_multiplexer;
 
-import "dart:isolate";
-import "dart:collection";
-import "lists.dart";
+import 'dart:collection';
+import 'dart:isolate';
+
+import 'lists.dart';
 
 class _MultiplexRawReceivePort implements RawReceivePort {
   final RawReceivePortMultiplexer _multiplexer;
