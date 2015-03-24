@@ -46,7 +46,7 @@ class MultiError extends Error {
     int count = 0;
     int errors = 0;
     int values = 0;
-    // Initilized to `new List(count)` when count is known.
+    // Initialized to `new List(count)` when count is known.
     // Filled up with values on the left, errors on the right.
     // Order is not preserved.
     List results;
@@ -103,7 +103,7 @@ class MultiError extends Error {
     int count = 0;
     bool hasError = false;
     int completed = 0;
-    // Initalized to `new List(count)` when count is known.
+    // Initialized to `new List(count)` when count is known.
     // Filled with values until the first error, then cleared
     // and filled with errors.
     List results;

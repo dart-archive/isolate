@@ -34,10 +34,10 @@ const int _FIND = 5;
 /// It is recommended to only have one `Registry` object working on the
 /// same registry in each isolate.
 ///
-/// When the registry is shared accross isolates, both elements and tags must
+/// When the registry is shared across isolates, both elements and tags must
 /// be sendable between the isolates.
 /// Between isolates spawned using [Isolate.spawn] from the same initial
-/// isolate, most objectes can be sent.
+/// isolate, most objects can be sent.
 /// Only simple objects can be sent between isolates originating from different
 /// [Isolate.spawnUri] calls.
 class Registry<T> {
@@ -50,7 +50,7 @@ class Registry<T> {
   // also copying the cache.
   static Expando _caches = new Expando();
 
-  /// Port for sending command to the central registry mananger.
+  /// Port for sending command to the central registry manager.
   SendPort _commandPort;
 
   /// Create a registry linked to a [RegistryManager] through [commandPort].

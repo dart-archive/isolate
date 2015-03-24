@@ -1,3 +1,7 @@
+###0.2.1
+
+* Fixed spelling in a number of doc comments and the README.
+
 ###0.2.0
 
 * Renamed library `isolaterunner.dart` to `isolate_runner.dart`.

@@ -16,12 +16,12 @@ class Runner {
   /// Request that [function] be called with the provided arguments.
   ///
   /// The arguments will be applied to the function in the same way as by
-  /// [Function.apply], but it may happen in a diffent isolate or setting.
+  /// [Function.apply], but it may happen in a different isolate or setting.
   ///
   /// It's necessary that the function can be sent through a [SendPort]
   /// if the call is performed in another isolate.
   /// That means the other isolate should be created using [Isolate.spawn]
-  /// so that it is running the same code as the sending isoalte,
+  /// so that it is running the same code as the sending isolate,
   /// and the function must be a static or top-level function.
   ///
   /// Waits for the result of the call, and completes the returned future

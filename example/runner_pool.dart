@@ -28,7 +28,7 @@ void main() {
   });
 }
 
-// Compute fibonnacci 1..limit
+// Compute fibonacci 1..limit
 Future<List<int>> parfib(int limit, int parallelity) {
   return LoadBalancer.create(parallelity, IsolateRunner.spawn).then(
     (LoadBalancer pool) {

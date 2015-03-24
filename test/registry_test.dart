@@ -467,9 +467,9 @@ void testMultiRegistry() {
         expect(entries, hasLength(1));
         l2 = entries.first;
         expect(l2, equals(l1));
-        // The object for registry2 is not idential the one for registry1.
+        // The object for registry2 is not identical the one for registry1.
         expect(!identical(l1, l2), isTrue);
-        // Removeing the registry1 object through registry2 doesn't work.
+        // Removing the registry1 object through registry2 doesn't work.
         return registry2.remove(l1, removeCapability);
       }).then((removeSuccess) {
         expect(removeSuccess, isFalse);

@@ -267,7 +267,7 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
   /// Whether the entry is still in the queue.
   bool get inQueue => queueIndex >= 0;
 
-  Future run(LoadBalancer balancer, int load, function(argumen), argument,
+  Future run(LoadBalancer balancer, int load, function(argument), argument,
              Duration timeout, onTimeout()) {
     return runner.run(function, argument,
                       timeout: timeout, onTimeout: onTimeout).whenComplete(() {

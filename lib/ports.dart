@@ -28,7 +28,7 @@ import "src/lists.dart";
 ///
 /// The [callback] function is called once, with the first message
 /// received by the receive port.
-/// All futher messages are ignored.
+/// All further messages are ignored.
 ///
 /// If [timeout] is supplied, it is used as a limit on how
 /// long it can take before the message is received. If a
@@ -245,7 +245,7 @@ void completeFutureResult(var response, Completer completer) {
 }
 
 
-/// Convertes a received message created by [sendFutureResult] to a future
+/// Converts a received message created by [sendFutureResult] to a future
 /// result.
 ///
 /// The [response] must be a message on the format sent by [sendFutureResult].
