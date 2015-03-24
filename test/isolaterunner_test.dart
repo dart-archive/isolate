@@ -111,4 +111,4 @@ id(x) => x;
 
 var _global;
 getGlobal(_) => _global;
-void setGlobal(v) => _global = v;
+setGlobal(v) => _global = v;
