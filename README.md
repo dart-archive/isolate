@@ -1,6 +1,7 @@
-# isolate
+[![Build Status](https://travis-ci.org/dart-lang/isolate.svg?branch=master)](https://travis-ci.org/dart-lang/isolate)
+[![Coverage Status](https://coveralls.io/repos/dart-lang/isolate/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/isolate)
 
-The `isolate` package helps with isolates and isolate communication.
+Helps with isolates and isolate communication in Dart.
 
 The package contains individual libraries with different purposes.
 
