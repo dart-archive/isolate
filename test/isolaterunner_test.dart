@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.pkg.isolate.isolaterunner_test;
+library isolate.test.isolaterunner_test;
 
 import 'dart:async' show Future;
 import 'dart:isolate' show Capability;
@@ -16,7 +16,7 @@ void main() {
   test("create-close", testCreateClose);
   test("create-run-close", testCreateRunClose);
   test("separate-isolates", testSeparateIsolates);
-  testIsolateFunctions();
+  group('isolate functions', testIsolateFunctions);
 }
 
 Future testCreateClose() {

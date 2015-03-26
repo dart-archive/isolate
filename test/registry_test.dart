@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.pkg.isolate.test.registry;
+library isolate.test.registry_test;
 
 import 'dart:async';
 import 'dart:isolate';
@@ -15,14 +15,14 @@ import 'package:unittest/unittest.dart';
 const MS = const Duration(milliseconds: 1);
 
 void main() {
-  testLookup();
-  testAddLookup();
-  testAddRemoveTags();
-  testRemove();
-  testCrossIsolate();
-  testTimeout();
-  testMultiRegistry();
-  testObjectsAndTags();
+  group('lookup', testLookup);
+  group('AddLookup', testAddLookup);
+  group('AddRemoveTags', testAddRemoveTags);
+  group('Remove', testRemove);
+  group('CrossIsolate', testCrossIsolate);
+  group('Timeout', testTimeout);
+  group('MultiRegistry', testMultiRegistry);
+  group('ObjectsAndTags', testObjectsAndTags);
 }
 
 class Oddity {
@@ -35,7 +35,7 @@ Future<List> waitAll(int n, Future action(int n)) {
 }
 
 void testLookup() {
-  test("lookupAll", () {
+  test("All", () {
     RegistryManager regman = new RegistryManager();
     Registry registry = regman.registry;
     return waitAll(10, (i) {
@@ -52,7 +52,7 @@ void testLookup() {
     .whenComplete(regman.close);
   });
 
-  test("lookupOdd", () {
+  test("Odd", () {
     RegistryManager regman = new RegistryManager();
     Registry registry = regman.registry;
     return waitAll(10, (i) {
@@ -69,7 +69,7 @@ void testLookup() {
     .whenComplete(regman.close);
   });
 
-  test("lookupMax", () {
+  test("Max", () {
     RegistryManager regman = new RegistryManager();
     Registry registry = regman.registry;
     return waitAll(10, (i) {
@@ -84,7 +84,7 @@ void testLookup() {
     .whenComplete(regman.close);
   });
 
-  test("lookupMultiTag", () {
+  test("MultiTag", () {
     RegistryManager regman = new RegistryManager();
     Registry registry = regman.registry;
     return waitAll(25, (i) {
@@ -105,7 +105,7 @@ void testLookup() {
     .whenComplete(regman.close);
   });
 
-  test("lookupMultiTagMax", () {
+  test("MultiTagMax", () {
     RegistryManager regman = new RegistryManager();
     Registry registry = regman.registry;
     return waitAll(25, (i) {
