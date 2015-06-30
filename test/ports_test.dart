@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:isolate/ports.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 const Duration MS = const Duration(milliseconds: 1);
 

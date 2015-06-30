@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 import 'dart:isolate' show Capability;
 
 import 'package:isolate/isolate_runner.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 const MS = const Duration(milliseconds: 1);
 

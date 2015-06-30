@@ -10,7 +10,7 @@ import 'dart:isolate';
 import 'package:isolate/isolate_runner.dart';
 import 'package:isolate/registry.dart';
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 const MS = const Duration(milliseconds: 1);
 

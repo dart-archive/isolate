@@ -4,7 +4,7 @@
 
 library isolate.test.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'isolaterunner_test.dart' as isolaterunner;
 import 'ports_test.dart' as ports;
