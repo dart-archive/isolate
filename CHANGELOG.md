@@ -1,3 +1,12 @@
+###0.2.3
+
+* Fixed strong mode analysis errors.
+* Migrated tests to package:test.
+
+###0.2.2
+
+* Made `Isolate.kill` parameter `priority` a named parameter.
+
 ###0.2.1
 
 * Fixed spelling in a number of doc comments and the README.
