@@ -309,7 +309,7 @@ class RegistryManager {
       new Registry.fromPort(_commandPort.sendPort, timeout: _timeout);
 
   // Used as argument to putIfAbsent.
-  static Set _createSet() => new HashSet();
+  static Set<int> _createSet() => new HashSet<int>();
 
   void _handleCommand(List command) {
     switch (command[0]) {
