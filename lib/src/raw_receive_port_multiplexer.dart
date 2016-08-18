@@ -35,7 +35,7 @@ class _MultiplexRawReceivePort implements RawReceivePort {
 
   _MultiplexRawReceivePort(this._multiplexer, this._id, this._handler);
 
-  void set handler(void handler(response)) {
+  void set handler(Function handler) {
     this._handler = handler;
   }
 
