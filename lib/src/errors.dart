@@ -58,7 +58,7 @@ class MultiError extends Error {
       }
       var errorList = results.sublist(results.length - errors);
       completer.completeError(new MultiError(errorList));
-    };
+    }
     var handleValue = (v) {
       // If this fails because [results] is null, there is a future
       // which breaks the Future API by completing immediately when
@@ -115,7 +115,7 @@ class MultiError extends Error {
         return;
       }
       completer.completeError(new MultiError(results));
-    };
+    }
     for (Future future in futures) {
       int i = count;
       count++;

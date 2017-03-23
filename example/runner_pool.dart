@@ -4,7 +4,7 @@
 
 library isolate.example.runner_pool;
 
-import 'dart:async' show Future, Completer;
+import 'dart:async' show Future;
 
 import 'package:isolate/load_balancer.dart';
 import 'package:isolate/isolate_runner.dart';
@@ -32,7 +32,7 @@ void main() {
 Future<List<int>> parfib(int limit, int parallelity) {
   return LoadBalancer.create(parallelity, IsolateRunner.spawn).then(
     (LoadBalancer pool) {
-      List<Future> fibs = new List(limit + 1);
+      var fibs = new List<Future<int>>(limit + 1);
       // Schedule all calls with exact load value and the heaviest task
       // assigned first.
       schedule(a, b, i) {
