@@ -54,8 +54,8 @@ class IsolateRunner implements Runner {
   /// The created isolate is set to have errors not be fatal.
   static Future<IsolateRunner> spawn() async {
     var channel = new SingleResponseChannel();
-    var isolate = await Isolate.spawn(IsolateRunnerRemote._create,
-                                      channel.port);
+    var isolate =
+        await Isolate.spawn(IsolateRunnerRemote._create, channel.port);
     // The runner can be used to run multiple independent functions.
     // An accidentally uncaught error shouldn't ruin it for everybody else.
     isolate.setErrorsFatal(false);
@@ -126,9 +126,8 @@ class IsolateRunner implements Runner {
   /// (like pause and resume) have been handled.
   /// Paused isolates do respond to ping requests.
   Future<bool> ping({Duration timeout: const Duration(seconds: 1)}) {
-    var channel = new SingleResponseChannel(callback: _kTrue,
-                                            timeout: timeout,
-                                            timeoutValue: false);
+    var channel = new SingleResponseChannel(
+        callback: _kTrue, timeout: timeout, timeoutValue: false);
     isolate.ping(channel.port);
     return channel.result;
   }
@@ -185,7 +184,8 @@ class IsolateRunner implements Runner {
   ///     } finally {
   ///       await iso.close();
   ///     }
-  Future run(function(argument), argument, {Duration timeout, onTimeout()}) {
+  Future<R> run<R, P>(R function(P argument), P argument,
+      {Duration timeout, onTimeout()}) {
     return singleResultFuture((SendPort port) {
       _commandPort.send(list4(_RUN, function, argument, port));
     }, timeout: timeout, onTimeout: onTimeout);
@@ -213,6 +213,7 @@ class IsolateRunner implements Runner {
         controller.addError(error, error.stackTrace);
       }
     }
+
     controller = new StreamController.broadcast(
         sync: true,
         onListen: () {
@@ -289,8 +290,8 @@ class IsolateRunnerRemote {
         Function function = command[1];
         var argument = command[2];
         SendPort responsePort = command[3];
-        sendFutureResult(new Future.sync(() => function(argument)),
-                         responsePort);
+        sendFutureResult(
+            new Future.sync(() => function(argument)), responsePort);
         return;
     }
   }
