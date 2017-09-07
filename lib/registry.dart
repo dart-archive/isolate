@@ -289,7 +289,7 @@ class RegistryManager {
   /// The optional [timeout] parameter can be set to the duration
   /// registry objects should wait before assuming that an operation
   /// has failed.
-  RegistryManager({timeout: const Duration(seconds: 5)})
+  RegistryManager({Duration timeout: const Duration(seconds: 5)})
       : _timeout = timeout,
         _commandPort = new RawReceivePort() {
     _commandPort.handler = _handleCommand;
