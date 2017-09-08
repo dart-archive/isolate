@@ -68,7 +68,7 @@ class LoadBalancer implements Runner {
   /// If [timeout] and [onTimeout] are provided, they are forwarded to
   /// the runner running the function, which will handle a timeout
   /// as normal.
-  Future run(function(argument), argument, {Duration timeout,
+  Future<R> run<R, P>(R function(P argument), argument, {Duration timeout,
                                             onTimeout(),
                                             int load: 100}) {
     RangeError.checkNotNegative(load, "load");
@@ -267,9 +267,9 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
   /// Whether the entry is still in the queue.
   bool get inQueue => queueIndex >= 0;
 
-  Future run(LoadBalancer balancer, int load, function(argument), argument,
+  Future<R> run<R, P>(LoadBalancer balancer, int load, R function(P argument), argument,
              Duration timeout, onTimeout()) {
-    return runner.run(function, argument,
+    return runner.run<R, P>(function, argument,
                       timeout: timeout, onTimeout: onTimeout).whenComplete(() {
       balancer._decreaseLoad(this, load);
     });
