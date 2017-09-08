@@ -350,7 +350,7 @@ void testAddRemoveTags() {
   test("Remove-wrong-object", () {
     RegistryManager regman = new RegistryManager();
     Registry registry = regman.registry;
-    expect(() => registry.removeTags([new Object()], ["x"]), throws);
+    expect(() => registry.removeTags([new Object()], ["x"]), throwsStateError);
     regman.close();
   });
 }

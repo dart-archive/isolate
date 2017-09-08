@@ -48,7 +48,7 @@ class Registry<T> {
   // The cache is stored in an [Expando], not on the object.
   // This allows sending the `Registry` object through a `SendPort` without
   // also copying the cache.
-  static Expando _caches = new Expando();
+  static final Expando _caches = new Expando();
 
   /// Port for sending command to the central registry manager.
   SendPort _commandPort;
@@ -281,15 +281,15 @@ class RegistryManager {
 
   /// Maps id to entry. Each entry contains the id, the element, its tags,
   /// and a capability required to remove it again.
-  Map<int, _RegistryEntry> _entries = new HashMap();
-  Map<Object, Set<int>> _tag2id = new HashMap();
+  final Map<int, _RegistryEntry> _entries = new HashMap();
+  final Map<Object, Set<int>> _tag2id = new HashMap();
 
   /// Create a new registry managed by the created [RegistryManager].
   ///
   /// The optional [timeout] parameter can be set to the duration
   /// registry objects should wait before assuming that an operation
   /// has failed.
-  RegistryManager({timeout: const Duration(seconds: 5)})
+  RegistryManager({Duration timeout: const Duration(seconds: 5)})
       : _timeout = timeout,
         _commandPort = new RawReceivePort() {
     _commandPort.handler = _handleCommand;
