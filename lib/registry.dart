@@ -281,8 +281,8 @@ class RegistryManager {
 
   /// Maps id to entry. Each entry contains the id, the element, its tags,
   /// and a capability required to remove it again.
-  final Map<int, _RegistryEntry> _entries = new HashMap();
-  final Map<Object, Set<int>> _tag2id = new HashMap();
+  final _entries = new HashMap<int, _RegistryEntry>();
+  final _tag2id = new HashMap<Object, Set<int>>();
 
   /// Create a new registry managed by the created [RegistryManager].
   ///
