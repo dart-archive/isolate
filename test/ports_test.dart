@@ -68,15 +68,13 @@ void testSingleCallbackPort() {
   test("TimeoutFirst", () {
     Completer completer = new Completer.sync();
     SendPort p = singleCallbackPort(completer.complete,
-                                    timeout: MS * 100,
-                                    timeoutValue: 37);
+        timeout: MS * 100, timeoutValue: 37);
     new Timer(MS * 500, () => p.send(42));
     return completer.future.then((v) {
       expect(v, 37);
     });
   });
 }
-
 
 void testSingleCompletePort() {
   test("Value", () {
@@ -104,8 +102,7 @@ void testSingleCompletePort() {
     Completer completer = new Completer.sync();
     SendPort p = singleCompletePort(completer, callback: (v) {
       expect(42, v);
-      return new Future.delayed(MS * 500,
-                                () => 88);
+      return new Future.delayed(MS * 500, () => 88);
     });
     p.send(42);
     return completer.future.then((v) {
@@ -154,9 +151,9 @@ void testSingleCompletePort() {
   test("FirstValueCallback", () {
     Completer completer = new Completer.sync();
     SendPort p = singleCompletePort(completer, callback: (v) {
-       expect(v, 42);
-       return 87;
-     });
+      expect(v, 42);
+      return 87;
+    });
     p.send(42);
     p.send(37);
     return completer.future.then((v) {
@@ -204,8 +201,7 @@ void testSingleCompletePort() {
   test("TimeoutCallbackFuture", () {
     Completer completer = new Completer.sync();
     singleCompletePort(completer,
-                       timeout: MS * 100,
-                       onTimeout: () => new Future.value(87));
+        timeout: MS * 100, onTimeout: () => new Future.value(87));
     return completer.future.then((v) {
       expect(v, 87);
     });
@@ -214,8 +210,7 @@ void testSingleCompletePort() {
   test("TimeoutCallbackThrowsFuture", () {
     Completer completer = new Completer.sync();
     singleCompletePort(completer,
-                       timeout: MS * 100,
-                       onTimeout: () => new Future.error(92));
+        timeout: MS * 100, onTimeout: () => new Future.error(92));
     return completer.future.then((v) {
       fail("unreachable");
     }, onError: (e, s) {
@@ -225,8 +220,7 @@ void testSingleCompletePort() {
 
   test("TimeoutCallbackSLow", () {
     Completer completer = new Completer.sync();
-    singleCompletePort(
-        completer,
+    singleCompletePort(completer,
         timeout: MS * 100,
         onTimeout: () => new Future.delayed(MS * 500, () => 87));
     return completer.future.then((v) {
@@ -236,8 +230,7 @@ void testSingleCompletePort() {
 
   test("TimeoutCallbackThrowsSlow", () {
     Completer completer = new Completer.sync();
-    singleCompletePort(
-        completer,
+    singleCompletePort(completer,
         timeout: MS * 100,
         onTimeout: () => new Future.delayed(MS * 500, () => throw 87));
     return completer.future.then((v) {
@@ -382,7 +375,7 @@ void testSingleResultFuture() {
 }
 
 void testSingleResponseChannel() {
-   test("Value", () {
+  test("Value", () {
     var channel = new SingleResponseChannel();
     channel.port.send(42);
     return channel.result.then((v) {
@@ -410,15 +403,16 @@ void testSingleResponseChannel() {
   test("ErrorCallback", () {
     var channel = new SingleResponseChannel(callback: (v) => throw 42);
     channel.port.send(37);
-    return channel.result.then((v) { fail("unreachable"); },
-                               onError: (v, s) {
-                                 expect(v, 42);
-                               });
+    return channel.result.then((v) {
+      fail("unreachable");
+    }, onError: (v, s) {
+      expect(v, 42);
+    });
   });
 
   test("AsyncValueCallback", () {
-    var channel = new SingleResponseChannel(
-                          callback: (v) => new Future.value(v * 2));
+    var channel =
+        new SingleResponseChannel(callback: (v) => new Future.value(v * 2));
     channel.port.send(42);
     return channel.result.then((v) {
       expect(v, 84);
@@ -426,13 +420,14 @@ void testSingleResponseChannel() {
   });
 
   test("AsyncErrorCallback", () {
-    var channel = new SingleResponseChannel(callback:
-                                                (v) => new Future.error(42));
+    var channel =
+        new SingleResponseChannel(callback: (v) => new Future.error(42));
     channel.port.send(37);
-    return channel.result.then((v) { fail("unreachable"); },
-                               onError: (v, s) {
-                                 expect(v, 42);
-                               });
+    return channel.result.then((v) {
+      fail("unreachable");
+    }, onError: (v, s) {
+      expect(v, 42);
+    });
   });
 
   test("Timeout", () {
@@ -443,75 +438,77 @@ void testSingleResponseChannel() {
   });
 
   test("TimeoutThrow", () {
-    var channel = new SingleResponseChannel(timeout: MS * 100,
-                                            throwOnTimeout: true);
-    return channel.result.then((v) { fail("unreachable"); },
-                               onError: (v, s) {
-                                 expect(v is TimeoutException, isTrue);
-                               });
+    var channel =
+        new SingleResponseChannel(timeout: MS * 100, throwOnTimeout: true);
+    return channel.result.then((v) {
+      fail("unreachable");
+    }, onError: (v, s) {
+      expect(v is TimeoutException, isTrue);
+    });
   });
 
   test("TimeoutThrowOnTimeoutAndValue", () {
-    var channel = new SingleResponseChannel(timeout: MS * 100,
-                                            throwOnTimeout: true,
-                                            onTimeout: () => 42,
-                                            timeoutValue: 42);
-    return channel.result.then((v) { fail("unreachable"); },
-                               onError: (v, s) {
-                                 expect(v is TimeoutException, isTrue);
-                               });
+    var channel = new SingleResponseChannel(
+        timeout: MS * 100,
+        throwOnTimeout: true,
+        onTimeout: () => 42,
+        timeoutValue: 42);
+    return channel.result.then((v) {
+      fail("unreachable");
+    }, onError: (v, s) {
+      expect(v is TimeoutException, isTrue);
+    });
   });
 
   test("TimeoutOnTimeout", () {
-    var channel = new SingleResponseChannel(timeout: MS * 100,
-                                            onTimeout: () => 42);
+    var channel =
+        new SingleResponseChannel(timeout: MS * 100, onTimeout: () => 42);
     return channel.result.then((v) {
       expect(v, 42);
     });
   });
 
   test("TimeoutOnTimeoutAndValue", () {
-    var channel = new SingleResponseChannel(timeout: MS * 100,
-                                            onTimeout: () => 42,
-                                            timeoutValue: 37);
+    var channel = new SingleResponseChannel(
+        timeout: MS * 100, onTimeout: () => 42, timeoutValue: 37);
     return channel.result.then((v) {
       expect(v, 42);
     });
   });
 
   test("TimeoutValue", () {
-    var channel = new SingleResponseChannel(timeout: MS * 100,
-                                            timeoutValue: 42);
+    var channel =
+        new SingleResponseChannel(timeout: MS * 100, timeoutValue: 42);
     return channel.result.then((v) {
       expect(v, 42);
     });
   });
 
   test("TimeoutOnTimeoutError", () {
-    var channel = new SingleResponseChannel(timeout: MS * 100,
-                                            onTimeout: () => throw 42);
-    return channel.result.then((v) { fail("unreachable"); },
-                               onError: (v, s) {
-                                 expect(v, 42);
-                               });
+    var channel =
+        new SingleResponseChannel(timeout: MS * 100, onTimeout: () => throw 42);
+    return channel.result.then((v) {
+      fail("unreachable");
+    }, onError: (v, s) {
+      expect(v, 42);
+    });
   });
 
   test("TimeoutOnTimeoutAsync", () {
-    var channel = new SingleResponseChannel(timeout: MS * 100,
-                                            onTimeout:
-                                                () => new Future.value(42));
+    var channel = new SingleResponseChannel(
+        timeout: MS * 100, onTimeout: () => new Future.value(42));
     return channel.result.then((v) {
       expect(v, 42);
     });
   });
 
   test("TimeoutOnTimeoutAsyncError", () {
-    var channel = new SingleResponseChannel(timeout: MS * 100,
-                                            onTimeout:
-                                                () => new Future.error(42));
-    return channel.result.then((v) { fail("unreachable"); },
-                               onError: (v, s) {
-                                 expect(v, 42);
-                               });
+    var channel = new SingleResponseChannel(
+        timeout: MS * 100, onTimeout: () => new Future.error(42));
+    return channel.result.then((v) {
+      fail("unreachable");
+    }, onError: (v, s) {
+      expect(v, 42);
+    });
   });
 }

@@ -30,21 +30,23 @@ void main() {
 
 // Compute fibonacci 1..limit
 Future<List<int>> parfib(int limit, int parallelity) {
-  return LoadBalancer.create(parallelity, IsolateRunner.spawn).then(
-    (LoadBalancer pool) {
-      var fibs = new List<Future<int>>(limit + 1);
-      // Schedule all calls with exact load value and the heaviest task
-      // assigned first.
-      schedule(a, b, i) {
-        if (i < limit) {
-          schedule(a + b, a, i + 1);
-        }
-        fibs[i] = pool.run(fib, i, load: a);
+  return LoadBalancer
+      .create(parallelity, IsolateRunner.spawn)
+      .then((LoadBalancer pool) {
+    var fibs = new List<Future<int>>(limit + 1);
+    // Schedule all calls with exact load value and the heaviest task
+    // assigned first.
+    schedule(a, b, i) {
+      if (i < limit) {
+        schedule(a + b, a, i + 1);
       }
-      schedule(0, 1, 0);
-      // And wait for them all to complete.
-      return Future.wait(fibs).whenComplete(pool.close);
-    });
+      fibs[i] = pool.run(fib, i, load: a);
+    }
+
+    schedule(0, 1, 0);
+    // And wait for them all to complete.
+    return Future.wait(fibs).whenComplete(pool.close);
+  });
 }
 
 int computeFib(int n) {

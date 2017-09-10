@@ -36,25 +36,24 @@ Future testCreateRunClose() {
 
 Future testSeparateIsolates() {
   // Check that each isolate has its own _global variable.
-  return Future.wait(new Iterable.generate(2, (_) => IsolateRunner.spawn()))
-    .then((runners) {
-      Future runAll(action(IsolateRunner runner, int index)) {
-        var indices = new Iterable.generate(runners.length);
-        return Future.wait(indices.map((i) => action(runners[i], i)));
-      }
+  return Future
+      .wait(new Iterable.generate(2, (_) => IsolateRunner.spawn()))
+      .then((runners) {
+    Future runAll(action(IsolateRunner runner, int index)) {
+      var indices = new Iterable.generate(runners.length);
+      return Future.wait(indices.map((i) => action(runners[i], i)));
+    }
 
-      return runAll((runner, i) => runner.run(setGlobal, i + 1))
-             .then((values) {
-               expect(values, [1, 2]);
-               expect(_global, null);
-               return runAll((runner, _) => runner.run(getGlobal, null));
-             })
-             .then((values) {
-               expect(values, [1, 2]);
-               expect(_global, null);
-               return runAll((runner, _) => runner.close());
-             });
+    return runAll((runner, i) => runner.run(setGlobal, i + 1)).then((values) {
+      expect(values, [1, 2]);
+      expect(_global, null);
+      return runAll((runner, _) => runner.run(getGlobal, null));
+    }).then((values) {
+      expect(values, [1, 2]);
+      expect(_global, null);
+      return runAll((runner, _) => runner.close());
     });
+  });
 }
 
 void testIsolateFunctions() {

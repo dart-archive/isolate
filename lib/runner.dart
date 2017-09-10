@@ -36,7 +36,7 @@ class Runner {
   ///
   /// The default implementation runs the function in the current isolate.
   Future run(function(argument), Object argument,
-             {Duration timeout, onTimeout()}) {
+      {Duration timeout, onTimeout()}) {
     Future result = new Future.sync(() => function(argument));
     if (timeout != null) {
       result = result.timeout(timeout, onTimeout: onTimeout);

@@ -88,7 +88,7 @@ class RawReceivePortMultiplexer {
     _MultiplexRawReceivePort receivePort = _map[id];
     // If the receive port is closed, messages are dropped, just as for
     // the normal ReceivePort.
-    if (receivePort == null) return;  // Port closed.
+    if (receivePort == null) return; // Port closed.
     receivePort._invokeHandler(message);
   }
 

@@ -47,9 +47,8 @@ void testLookup() {
     }).then((all) {
       expect(all.length, 10);
       expect(all.map((v) => v.id).toList()..sort(),
-             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    })
-    .whenComplete(regman.close);
+          [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    }).whenComplete(regman.close);
   });
 
   test("Odd", () {
@@ -60,13 +59,11 @@ void testLookup() {
       var tag = i.isEven ? Oddity.EVEN : Oddity.ODD;
       return registry.add(element, tags: [tag]);
     }).then((_) {
-      return registry.lookup(tags:[Oddity.ODD]);
+      return registry.lookup(tags: [Oddity.ODD]);
     }).then((all) {
       expect(all.length, 5);
-      expect(all.map((v) => v.id).toList()..sort(),
-             [1, 3, 5, 7, 9]);
-    })
-    .whenComplete(regman.close);
+      expect(all.map((v) => v.id).toList()..sort(), [1, 3, 5, 7, 9]);
+    }).whenComplete(regman.close);
   });
 
   test("Max", () {
@@ -80,8 +77,7 @@ void testLookup() {
       return registry.lookup(max: 5);
     }).then((all) {
       expect(all.length, 5);
-    })
-    .whenComplete(regman.close);
+    }).whenComplete(regman.close);
   });
 
   test("MultiTag", () {
@@ -99,10 +95,8 @@ void testLookup() {
       return registry.lookup(tags: [2, 3]);
     }).then((all) {
       expect(all.length, 5);
-      expect(all.map((v) => v.id).toList()..sort(),
-             [0, 6, 12, 18, 24]);
-    })
-    .whenComplete(regman.close);
+      expect(all.map((v) => v.id).toList()..sort(), [0, 6, 12, 18, 24]);
+    }).whenComplete(regman.close);
   });
 
   test("MultiTagMax", () {
@@ -121,8 +115,7 @@ void testLookup() {
     }).then((all) {
       expect(all.length, 3);
       expect(all.every((v) => (v.id % 6) == 0), isTrue);
-    })
-    .whenComplete(regman.close);
+    }).whenComplete(regman.close);
   });
 }
 
@@ -361,6 +354,7 @@ Registry createRegMan(id) {
   _regmen[id] = regman;
   return regman.registry;
 }
+
 void closeRegMan(id) {
   _regmen.remove(id).close();
 }
@@ -515,6 +509,7 @@ void testObjectsAndTags() {
       }).whenComplete(regman.close);
     });
   }
+
   // Test objects that are sendable between equivalent isolates and
   // that has an operator== that works after cloning (for use as tags).
   testObject(42);

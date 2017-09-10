@@ -95,14 +95,14 @@ main(List<String> args) async {
       await ServerSocket.bind(InternetAddress.ANY_IP_V6, port, shared: true);
 
   port = socket.port;
-  var isolates = await Future.wait(
-      new Iterable.generate(5, (_) => IsolateRunner.spawn()),
-      cleanUp: (isolate) {
+  var isolates = await Future
+      .wait(new Iterable.generate(5, (_) => IsolateRunner.spawn()),
+          cleanUp: (isolate) {
     isolate.close();
   });
 
-  List<RemoteStop> stoppers = await Future.wait(isolates
-      .map((IsolateRunner isolate) {
+  List<RemoteStop> stoppers =
+      await Future.wait(isolates.map((IsolateRunner isolate) {
     return runHttpServer(isolate, socket.port, listener);
   }), cleanUp: (server) {
     server.stop();

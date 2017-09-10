@@ -67,7 +67,7 @@ class Registry<T> {
   /// this registry should wait before assuming that an operation
   /// has failed.
   Registry.fromPort(SendPort commandPort,
-                    {Duration timeout: const Duration(seconds: 5)})
+      {Duration timeout: const Duration(seconds: 5)})
       : _commandPort = commandPort,
         _timeout = timeout;
 
@@ -112,16 +112,19 @@ class Registry<T> {
       });
     }
     Completer completer = new Completer<Capability>();
-    SendPort port = singleCompletePort(completer, callback: (List response) {
-      assert(cache.isAdding(element));
-      int id = response[0];
-      Capability removeCapability = response[1];
-      cache.register(id, element);
-      return removeCapability;
-    }, timeout: _timeout, onTimeout: () {
-      cache.stopAdding(element);
-      throw new TimeoutException("Future not completed", _timeout);
-    });
+    SendPort port = singleCompletePort(completer,
+        callback: (List response) {
+          assert(cache.isAdding(element));
+          int id = response[0];
+          Capability removeCapability = response[1];
+          cache.register(id, element);
+          return removeCapability;
+        },
+        timeout: _timeout,
+        onTimeout: () {
+          cache.stopAdding(element);
+          throw new TimeoutException("Future not completed", _timeout);
+        });
     if (tags != null) tags = tags.toList(growable: false);
     cache.setAdding(element);
     _commandPort.send(list4(_ADD, element, tags, port));
@@ -367,7 +370,7 @@ class RegistryManager {
     assert(tags.isNotEmpty);
     for (int id in ids) {
       _RegistryEntry entry = _entries[id];
-      if (entry == null) continue;  // Entry was removed.
+      if (entry == null) continue; // Entry was removed.
       entry.tags.addAll(tags);
       for (var tag in tags) {
         Set ids = _tag2id.putIfAbsent(tag, _createSet);
@@ -382,7 +385,7 @@ class RegistryManager {
     assert(tags.isNotEmpty);
     for (int id in ids) {
       _RegistryEntry entry = _entries[id];
-      if (entry == null) continue;  // Object was removed.
+      if (entry == null) continue; // Object was removed.
       entry.tags.removeAll(tags);
     }
     for (var tag in tags) {
@@ -436,7 +439,7 @@ class RegistryManager {
       return;
     }
     var matchingIds = _findTaggedIds(tags);
-    if (max == null) max = matchingIds.length;  // All results.
+    if (max == null) max = matchingIds.length; // All results.
     for (var id in matchingIds) {
       result.add(id);
       result.add(_entries[id].element);
