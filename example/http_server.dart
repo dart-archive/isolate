@@ -104,8 +104,8 @@ main(List<String> args) async {
   List<RemoteStop> stoppers =
       await Future.wait(isolates.map((IsolateRunner isolate) {
     return runHttpServer(isolate, socket.port, listener);
-  }), cleanUp: (server) {
-    server.stop();
+  }), cleanUp: (shutdownServer) {
+    shutdownServer();
   });
 
   await socket.close();
