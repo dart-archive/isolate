@@ -184,7 +184,8 @@ class IsolateRunner implements Runner {
   ///     } finally {
   ///       await iso.close();
   ///     }
-  Future run(function(argument), argument, {Duration timeout, onTimeout()}) {
+  Future<R> run<R, P>(R function(P argument), P argument,
+      {Duration timeout, onTimeout()}) {
     return singleResultFuture((SendPort port) {
       _commandPort.send(list4(_RUN, function, argument, port));
     }, timeout: timeout, onTimeout: onTimeout);
