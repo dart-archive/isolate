@@ -42,13 +42,13 @@ import "src/lists.dart";
 ///     (new ReceivePort()
 ///         ..first.timeout(duration, () => timeoutValue).then(callback))
 ///         .sendPort
-SendPort singleCallbackPort(void callback(response),
-    {Duration timeout, var timeoutValue}) {
+SendPort singleCallbackPort<T>(void callback(T response),
+    {Duration timeout, T timeoutValue}) {
   RawReceivePort responsePort = new RawReceivePort();
   Zone zone = Zone.current;
   callback = zone.registerUnaryCallback(callback);
-  var timer;
-  responsePort.handler = (response) {
+  Timer timer;
+  responsePort.handler = (T response) {
     responsePort.close();
     if (timer != null) timer.cancel();
     zone.runUnary(callback, response);
@@ -87,25 +87,25 @@ SendPort singleCallbackPort(void callback(response),
 /// completed in response to another event, either a port message or a timer.
 ///
 /// Returns the `SendPort` expecting the single message.
-SendPort singleCompletePort(Completer completer,
-    {callback(message), Duration timeout, onTimeout()}) {
+SendPort singleCompletePort<T>(Completer completer,
+    {callback(T message), Duration timeout, T onTimeout()}) {
   if (callback == null && timeout == null) {
     return singleCallbackPort(completer.complete);
   }
   RawReceivePort responsePort = new RawReceivePort();
-  var timer;
+  Timer timer;
   if (callback == null) {
-    responsePort.handler = (response) {
+    responsePort.handler = (T response) {
       responsePort.close();
       if (timer != null) timer.cancel();
       completer.complete(response);
     };
   } else {
     Zone zone = Zone.current;
-    Function action = zone.registerUnaryCallback((response) {
+    var action = zone.registerUnaryCallback((T response) {
       completer.complete(new Future.sync(() => callback(response)));
     });
-    responsePort.handler = (response) {
+    responsePort.handler = (T response) {
       responsePort.close();
       if (timer != null) timer.cancel();
       zone.runUnary(action, response);
