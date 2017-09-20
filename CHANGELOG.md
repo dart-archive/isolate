@@ -1,3 +1,8 @@
+## 1.1.0
+
+* Add generic arguments to `run` in `LoadBalancer` and `IsolateRunner`.
+* Add generic arguments to `singleCallbackPort` and `singleCompletePort`.
+
 ## 1.0.0
 
 * Change to using `package:test` for testing.
