@@ -48,10 +48,10 @@ SendPort singleCallbackPort<T>(void callback(T response),
   Zone zone = Zone.current;
   callback = zone.registerUnaryCallback(callback);
   Timer timer;
-  responsePort.handler = (T response) {
+  responsePort.handler = (response) {
     responsePort.close();
     if (timer != null) timer.cancel();
-    zone.runUnary(callback, response);
+    zone.runUnary(callback, response as T);
   };
   if (timeout != null) {
     timer = new Timer(timeout, () {
@@ -105,10 +105,10 @@ SendPort singleCompletePort<T>(Completer completer,
     var action = zone.registerUnaryCallback((T response) {
       completer.complete(new Future.sync(() => callback(response)));
     });
-    responsePort.handler = (T response) {
+    responsePort.handler = (response) {
       responsePort.close();
       if (timer != null) timer.cancel();
-      zone.runUnary(action, response);
+      zone.runUnary(action, response as T);
     };
   }
   if (timeout != null) {
