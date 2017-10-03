@@ -1,5 +1,4 @@
 [![Build Status](https://travis-ci.org/dart-lang/isolate.svg?branch=master)](https://travis-ci.org/dart-lang/isolate)
-[![Coverage Status](https://coveralls.io/repos/dart-lang/isolate/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/isolate)
 
 Helps with isolates and isolate communication in Dart.
 
