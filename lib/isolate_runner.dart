@@ -274,7 +274,8 @@ class IsolateRunnerRemote {
   /// manually, otherwise it's handled by [IsolateRunner.spawn].
   SendPort get commandPort => _commandPort.sendPort;
 
-  static void _create(SendPort initPort) {
+  static void _create(Object data) {
+    var initPort = data as SendPort;
     var remote = new IsolateRunnerRemote();
     initPort.send(remote.commandPort);
   }
