@@ -41,10 +41,11 @@ import "src/util.dart";
 /// Returns the `SendPort` expecting the single message.
 ///
 /// Equivalent to:
-///
-///     (new ReceivePort()
-///         ..first.timeout(duration, () => timeoutValue).then(callback))
-///         .sendPort
+/// ```dart
+/// (new ReceivePort()
+///       ..first.timeout(duration, () => timeoutValue).then(callback))
+///     .sendPort
+/// ```
 SendPort singleCallbackPort<T>(void callback(T response),
     {Duration timeout, T timeoutValue}) {
   RawReceivePort responsePort = new RawReceivePort();

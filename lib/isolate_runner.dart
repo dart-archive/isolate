@@ -178,14 +178,15 @@ class IsolateRunner implements Runner {
   /// the caller.
   ///
   /// Example:
-  ///
-  ///     IsolateRunner iso = await IsolateRunner.spawn();
-  ///     try {
-  ///       return await iso.run(heavyComputation, argument);
-  ///     } finally {
-  ///       await iso.close();
-  ///     }
-  Future<R> run<R, T>(FutureOr<R> function(T argument), T argument,
+  /// ```dart
+  /// IsolateRunner iso = await IsolateRunner.spawn();
+  /// try {
+  ///   return await iso.run(heavyComputation, argument);
+  /// } finally {
+  ///   await iso.close();
+  /// }
+  /// ````
+  Future<R> run<R, P>(FutureOr<R> function(P argument), P argument,
       {Duration timeout, onTimeout()}) {
     return singleResultFuture<R>((SendPort port) {
       _commandPort.send(list4(_RUN, function, argument, port));

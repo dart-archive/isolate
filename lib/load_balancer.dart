@@ -44,8 +44,9 @@ class LoadBalancer implements Runner {
   ///
   /// This is a helper function that makes it easy to create a `LoadBalancer`
   /// with asynchronously created runners, for example:
-  ///
-  ///     var isolatePool = LoadBalancer.create(10, IsolateRunner.spawn);
+  /// ```dart
+  /// var isolatePool = LoadBalancer.create(10, IsolateRunner.spawn);
+  /// ```
   static Future<LoadBalancer> create(int size, Future<Runner> createRunner()) {
     return Future.wait(new Iterable.generate(size, (_) => createRunner()),
         cleanUp: (Runner runner) {
