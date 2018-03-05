@@ -7,9 +7,9 @@ library isolate.isolate_runner;
 import "dart:async";
 import "dart:isolate";
 
-import 'ports.dart';
-import 'runner.dart';
-import 'src/lists.dart';
+import "ports.dart";
+import "runner.dart";
+import "src/util.dart";
 
 // Command tags. Shared between IsolateRunner and IsolateRunnerRemote.
 const int _SHUTDOWN = 0;
@@ -76,10 +76,10 @@ class IsolateRunner implements Runner {
   /// Can be used to create an isolate, use [run] to start a service, and
   /// then drop the connection and let the service control the isolate's
   /// life cycle.
-  Future close() {
+  Future<void> close() {
     var channel = new SingleResponseChannel();
     _commandPort.send(list2(_SHUTDOWN, channel.port));
-    return channel.result;
+    return channel.result.then(ignore);
   }
 
   /// Kills the isolate.
@@ -94,10 +94,11 @@ class IsolateRunner implements Runner {
   /// If the isolate is already dead, the returned future will not complete.
   /// If that may be the case, use [Future.timeout] on the returned future
   /// to take extra action after a while. Example:
-  ///
-  ///     var f = isolate.kill();
-  ///     f.then((_) => print('Dead')
-  ///      .timeout(new Duration(...), onTimeout: () => print('No response'));
+  /// ```dart
+  /// var f = isolate.kill();
+  /// f.then((_) => print("Dead")
+  ///  .timeout(new Duration(...), onTimeout: () => print("No response"));
+  /// ```
   Future kill({Duration timeout: const Duration(seconds: 1)}) {
     Future onExit = singleResponseFuture(isolate.addOnExitListener);
     if (Duration.ZERO == timeout) {
@@ -184,9 +185,9 @@ class IsolateRunner implements Runner {
   ///     } finally {
   ///       await iso.close();
   ///     }
-  Future<R> run<R, P>(R function(P argument), P argument,
+  Future<R> run<R, T>(FutureOr<R> function(T argument), T argument,
       {Duration timeout, onTimeout()}) {
-    return singleResultFuture((SendPort port) {
+    return singleResultFuture<R>((SendPort port) {
       _commandPort.send(list4(_RUN, function, argument, port));
     }, timeout: timeout, onTimeout: onTimeout);
   }
@@ -237,13 +238,14 @@ class IsolateRunner implements Runner {
   /// If the isolate has already stopped responding to commands,
   /// the returned future will be completed after one second,
   /// using [ping] to check if the isolate is still alive.
-  Future get onExit {
+  Future<void> get onExit {
     // TODO(lrn): Is there a way to see if an isolate is dead
     // so we can close the receive port for this future?
+    // Using [ping] for now.
     if (_onExitFuture == null) {
       var channel = new SingleResponseChannel();
       isolate.addOnExitListener(channel.port);
-      _onExitFuture = channel.result;
+      _onExitFuture = channel.result.then(ignore);
       ping().then((bool alive) {
         if (!alive) {
           channel.interrupt();
@@ -280,7 +282,7 @@ class IsolateRunnerRemote {
     initPort.send(remote.commandPort);
   }
 
-  void _handleCommand(List command) {
+  void _handleCommand(List<Object> command) {
     switch (command[0]) {
       case _SHUTDOWN:
         SendPort responsePort = command[1];

@@ -4,20 +4,20 @@
 
 library isolate.test.ports_test;
 
-import 'dart:async';
-import 'dart:isolate';
+import "dart:async";
+import "dart:isolate";
 
-import 'package:isolate/ports.dart';
-import 'package:test/test.dart';
+import "package:isolate/ports.dart";
+import "package:test/test.dart";
 
 const Duration MS = const Duration(milliseconds: 1);
 
 main() {
-  group('SingleCallbackPort', testSingleCallbackPort);
-  group('SingleCompletePort', testSingleCompletePort);
-  group('SingleResponseFuture', testSingleResponseFuture);
-  group('SingleResponseFuture', testSingleResultFuture);
-  group('SingleResponseChannel', testSingleResponseChannel);
+  group("SingleCallbackPort", testSingleCallbackPort);
+  group("SingleCompletePort", testSingleCompletePort);
+  group("SingleResponseFuture", testSingleResponseFuture);
+  group("SingleResponseFuture", testSingleResultFuture);
+  group("SingleResponseChannel", testSingleResponseChannel);
 }
 
 void testSingleCallbackPort() {
@@ -393,7 +393,7 @@ void testSingleResponseChannel() {
   });
 
   test("ValueCallback", () {
-    var channel = new SingleResponseChannel(callback: (v) => v * 2);
+    var channel = new SingleResponseChannel(callback: (v) => 2 * v);
     channel.port.send(42);
     return channel.result.then((v) {
       expect(v, 84);
@@ -412,7 +412,7 @@ void testSingleResponseChannel() {
 
   test("AsyncValueCallback", () {
     var channel =
-        new SingleResponseChannel(callback: (v) => new Future.value(v * 2));
+        new SingleResponseChannel(callback: (v) => new Future.value(2 * v));
     channel.port.send(42);
     return channel.result.then((v) {
       expect(v, 84);

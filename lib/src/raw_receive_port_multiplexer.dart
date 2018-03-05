@@ -23,10 +23,10 @@
 /// global mutex, so it may be a bottleneck, but it's not clear how slow it is).
 library isolate.raw_receive_port_multiplexer;
 
-import 'dart:collection';
-import 'dart:isolate';
+import "dart:collection";
+import "dart:isolate";
 
-import 'lists.dart';
+import "util.dart";
 
 class _MultiplexRawReceivePort implements RawReceivePort {
   final RawReceivePortMultiplexer _multiplexer;

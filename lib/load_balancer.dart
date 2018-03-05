@@ -5,11 +5,11 @@
 /// A load-balancing runner pool.
 library isolate.load_balancer;
 
-import 'dart:async' show Future;
+import "dart:async" show Future, FutureOr;
 
-import 'runner.dart';
-import 'src/errors.dart';
-import 'src/lists.dart';
+import "runner.dart";
+import "src/errors.dart";
+import "src/util.dart";
 
 /// A pool of runners, ordered by load.
 ///
@@ -69,8 +69,8 @@ class LoadBalancer implements Runner {
   /// If [timeout] and [onTimeout] are provided, they are forwarded to
   /// the runner running the function, which will handle a timeout
   /// as normal.
-  Future<R> run<R, P>(R function(P argument), argument,
-      {Duration timeout, onTimeout(), int load: 100}) {
+  Future<R> run<R, P>(FutureOr<R> function(P argument), argument,
+      {Duration timeout, FutureOr<R> onTimeout(), int load: 100}) {
     RangeError.checkNotNegative(load, "load");
     _LoadBalancerEntry entry = _first;
     _increaseLoad(entry, load);
@@ -128,10 +128,11 @@ class LoadBalancer implements Runner {
     return result;
   }
 
-  Future close() {
+  Future<void> close() {
     if (_stopFuture != null) return _stopFuture;
     _stopFuture =
-        MultiError.waitUnordered(_queue.take(_length).map((e) => e.close()));
+        MultiError.waitUnordered(_queue.take(_length).map((e) => e.close()))
+            .then(ignore);
     // Remove all entries.
     for (int i = 0; i < _length; i++) _queue[i].queueIndex = -1;
     _queue = null;
@@ -265,8 +266,9 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
   /// Whether the entry is still in the queue.
   bool get inQueue => queueIndex >= 0;
 
-  Future<R> run<R, P>(LoadBalancer balancer, int load, R function(P argument),
-      argument, Duration timeout, onTimeout()) {
+  Future<R> run<R, P>(LoadBalancer balancer, int load,
+      FutureOr<R> function(P argument), argument, Duration timeout,
+      FutureOr<R> onTimeout()) {
     return runner
         .run<R, P>(function, argument, timeout: timeout, onTimeout: onTimeout)
         .whenComplete(() {
