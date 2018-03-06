@@ -46,8 +46,8 @@ import "src/util.dart";
 ///       ..first.timeout(duration, () => timeoutValue).then(callback))
 ///     .sendPort
 /// ```
-SendPort singleCallbackPort<T>(void callback(T response),
-    {Duration timeout, T timeoutValue}) {
+SendPort singleCallbackPort<P>(void callback(P response),
+    {Duration timeout, P timeoutValue}) {
   RawReceivePort responsePort = new RawReceivePort();
   Zone zone = Zone.current;
   callback = zone.registerUnaryCallback(callback);
@@ -55,7 +55,7 @@ SendPort singleCallbackPort<T>(void callback(T response),
   responsePort.handler = (response) {
     responsePort.close();
     timer?.cancel();
-    zone.runUnary(callback, response as T);
+    zone.runUnary(callback, response as P);
   };
   if (timeout != null) {
     timer = new Timer(timeout, () {
@@ -92,8 +92,8 @@ SendPort singleCallbackPort<T>(void callback(T response),
 /// completed in response to another event, either a port message or a timer.
 ///
 /// Returns the `SendPort` expecting the single message.
-SendPort singleCompletePort<R, T>(Completer<R> completer,
-    {FutureOr<R> callback(T message), Duration timeout,
+SendPort singleCompletePort<R, P>(Completer<R> completer,
+    {FutureOr<R> callback(P message), Duration timeout,
     FutureOr<R> onTimeout()}) {
   if (callback == null && timeout == null) {
     return singleCallbackPort<Object>((response) {
@@ -113,7 +113,7 @@ SendPort singleCompletePort<R, T>(Completer<R> completer,
     var action = zone.registerUnaryCallback((response) {
       try {
         // Also catch it if callback throws.
-        completer.complete(callback(response as T));
+        completer.complete(callback(response as P));
       } catch (error, stack) {
         completer.completeError(error, stack);
       }
@@ -121,7 +121,7 @@ SendPort singleCompletePort<R, T>(Completer<R> completer,
     responsePort.handler = (response) {
       responsePort.close();
       timer?.cancel();
-      zone.runUnary(action, response as T);
+      zone.runUnary(action, response as P);
     };
   }
   if (timeout != null) {

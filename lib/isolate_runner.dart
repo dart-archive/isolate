@@ -101,14 +101,14 @@ class IsolateRunner implements Runner {
   /// ```
   Future kill({Duration timeout: const Duration(seconds: 1)}) {
     Future onExit = singleResponseFuture(isolate.addOnExitListener);
-    if (Duration.ZERO == timeout) {
-      isolate.kill(priority: Isolate.IMMEDIATE);
+    if (Duration.zero == timeout) {
+      isolate.kill(priority: Isolate.immediate);
       return onExit;
     } else {
       // Try a more gentle shutdown sequence.
       _commandPort.send(list1(_SHUTDOWN));
       return onExit.timeout(timeout, onTimeout: () {
-        isolate.kill(priority: Isolate.IMMEDIATE);
+        isolate.kill(priority: Isolate.immediate);
         return onExit;
       });
     }
