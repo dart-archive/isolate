@@ -6,7 +6,7 @@
 /// or even isolate.
 library isolate.runner;
 
-import 'dart:async' show Future;
+import "dart:async" show Future, FutureOr;
 
 /// Calls a function with an argument.
 ///
@@ -35,8 +35,8 @@ class Runner {
   /// complete with a [TimeoutException].
   ///
   /// The default implementation runs the function in the current isolate.
-  Future<R> run<R, P>(R function(P argument), P argument,
-      {Duration timeout, onTimeout()}) {
+  Future<R> run<R, P>(FutureOr<R> function(P argument), P argument,
+      {Duration timeout, FutureOr<R> onTimeout()}) {
     Future result = new Future.sync(() => function(argument));
     if (timeout != null) {
       result = result.timeout(timeout, onTimeout: onTimeout);

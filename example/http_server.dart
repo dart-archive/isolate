@@ -8,15 +8,13 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
-import 'package:isolate/isolate_runner.dart';
+import "package:isolate/isolate_runner.dart";
 import "package:isolate/ports.dart";
 import "package:isolate/runner.dart";
 
-typedef Future RemoteStop();
-
-Future<RemoteStop> runHttpServer(
+Future<Future<Object> Function()> runHttpServer(
     Runner runner, int port, HttpListener listener) async {
-  var stopPort = await runner.run(_startHttpServer, [port, listener]);
+  SendPort stopPort = await runner.run(_startHttpServer, [port, listener]);
 
   return () => _sendStop(stopPort);
 }
@@ -101,7 +99,7 @@ main(List<String> args) async {
     isolate.close();
   });
 
-  List<RemoteStop> stoppers =
+  List<Future<Object> Function()> stoppers =
       await Future.wait(isolates.map((IsolateRunner isolate) {
     return runHttpServer(isolate, socket.port, listener);
   }), cleanUp: (shutdownServer) {
@@ -114,16 +112,17 @@ main(List<String> args) async {
   print("Server listening on port $port for $count requests");
   print("Test with:");
   print("  ab -l -c10 -n $count http://localhost:$port/");
+  print("where 'ab' is ApacheBench from, e.g., apache2_tools.");
 
-  await for (var event in counter) {
+  await for (var _ in counter) {
     count--;
     if (count == 0) {
-      print('Shutting down');
+      print("Shutting down");
       for (var stopper in stoppers) {
         await stopper();
       }
       counter.close();
     }
   }
-  print('Finished');
+  print("Finished");
 }

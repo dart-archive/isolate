@@ -1,3 +1,7 @@
+## 2.0.0
+
+* Make port functions generic so they can be used in a Dart 2 type-safe way.
+
 ## 1.1.0
 
 * Add generic arguments to `run` in `LoadBalancer` and `IsolateRunner`.

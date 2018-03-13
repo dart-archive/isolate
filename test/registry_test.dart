@@ -4,25 +4,25 @@
 
 library isolate.test.registry_test;
 
-import 'dart:async';
-import 'dart:isolate';
+import "dart:async";
+import "dart:isolate";
 
-import 'package:isolate/isolate_runner.dart';
-import 'package:isolate/registry.dart';
+import "package:isolate/isolate_runner.dart";
+import "package:isolate/registry.dart";
 
-import 'package:test/test.dart';
+import "package:test/test.dart";
 
 const MS = const Duration(milliseconds: 1);
 
 void main() {
-  group('lookup', testLookup);
-  group('AddLookup', testAddLookup);
-  group('AddRemoveTags', testAddRemoveTags);
-  group('Remove', testRemove);
-  group('CrossIsolate', testCrossIsolate);
-  group('Timeout', testTimeout);
-  group('MultiRegistry', testMultiRegistry);
-  group('ObjectsAndTags', testObjectsAndTags);
+  group("lookup", testLookup);
+  group("AddLookup", testAddLookup);
+  group("AddRemoveTags", testAddRemoveTags);
+  group("Remove", testRemove);
+  group("CrossIsolate", testCrossIsolate);
+  group("Timeout", testTimeout);
+  group("MultiRegistry", testMultiRegistry);
+  group("ObjectsAndTags", testObjectsAndTags);
 }
 
 class Oddity {

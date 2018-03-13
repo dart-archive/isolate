@@ -5,12 +5,12 @@
 /// An isolate-compatible object registry and lookup service.
 library isolate.registry;
 
-import 'dart:async' show Future, Completer, TimeoutException;
-import 'dart:collection' show HashMap, HashSet;
-import 'dart:isolate' show RawReceivePort, SendPort, Capability;
+import "dart:async" show Future, Completer, TimeoutException;
+import "dart:collection" show HashMap, HashSet;
+import "dart:isolate" show RawReceivePort, SendPort, Capability;
 
-import 'ports.dart';
-import 'src/lists.dart';
+import "ports.dart";
+import "src/util.dart";
 
 // Command tags.
 const int _ADD = 0;
@@ -111,7 +111,7 @@ class Registry<T> {
             "Object already in registry: ${Error.safeToString(element)}");
       });
     }
-    Completer completer = new Completer<Capability>();
+    var completer = new Completer<Capability>();
     SendPort port = singleCompletePort(completer,
         callback: (List response) {
           assert(cache.isAdding(element));
@@ -144,7 +144,7 @@ class Registry<T> {
     if (id == null) {
       return new Future<bool>.value(false);
     }
-    Completer completer = new Completer<bool>();
+    var completer = new Completer<bool>();
     SendPort port = singleCompletePort(completer, callback: (bool result) {
       _cache.remove(id);
       return result;
@@ -174,18 +174,18 @@ class Registry<T> {
   /// before or not.
   ///
   /// Fails if any of the elements are not in the registry.
-  Future removeTags(Iterable<T> elements, Iterable tags) {
+  Future<void> removeTags(Iterable<T> elements, Iterable tags) {
     List ids = elements.map(_getId).toList(growable: false);
     tags = tags.toList(growable: false);
-    Completer completer = new Completer();
+    var completer = new Completer<void>();
     SendPort port = singleCompletePort(completer, timeout: _timeout);
     _commandPort.send(list4(_REMOVE_TAGS, ids, tags, port));
     return completer.future;
   }
 
-  Future _addTags(List<int> ids, Iterable tags) {
+  Future<void> _addTags(List<int> ids, Iterable tags) {
     tags = tags.toList(growable: false);
-    Completer completer = new Completer();
+    var completer = new Completer<void>();
     SendPort port = singleCompletePort(completer, timeout: _timeout);
     _commandPort.send(list4(_ADD_TAGS, ids, tags, port));
     return completer.future;
@@ -205,7 +205,7 @@ class Registry<T> {
       throw new RangeError.range(max, 1, null, "max");
     }
     if (tags != null) tags = tags.toList(growable: false);
-    Completer completer = new Completer<List<T>>();
+    var completer = new Completer<List<T>>();
     SendPort port = singleCompletePort(completer, callback: (List response) {
       // Response is even-length list of (id, element) pairs.
       _RegistryCache cache = _cache;

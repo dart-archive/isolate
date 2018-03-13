@@ -4,11 +4,11 @@
 
 library isolate.test.isolaterunner_test;
 
-import 'dart:async' show Future;
-import 'dart:isolate' show Capability;
+import "dart:async" show Future;
+import "dart:isolate" show Capability;
 
-import 'package:isolate/isolate_runner.dart';
-import 'package:test/test.dart';
+import "package:isolate/isolate_runner.dart";
+import "package:test/test.dart";
 
 const MS = const Duration(milliseconds: 1);
 
@@ -16,7 +16,7 @@ void main() {
   test("create-close", testCreateClose);
   test("create-run-close", testCreateRunClose);
   test("separate-isolates", testSeparateIsolates);
-  group('isolate functions', testIsolateFunctions);
+  group("isolate functions", testIsolateFunctions);
 }
 
 Future testCreateClose() {
