@@ -100,7 +100,7 @@ class MultiError extends Error {
   /// [MultiError.errors] list will have errors in the corresponding slots,
   /// and `null` for non-errors.
   Future<List<Object>> wait<T>(Iterable<Future<T>> futures,
-        {void cleanUp(T successResult)}) {
+      {void cleanUp(T successResult)}) {
     Completer<List<Object>> completer;
     int count = 0;
     bool hasError = false;

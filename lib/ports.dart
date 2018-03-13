@@ -93,7 +93,8 @@ SendPort singleCallbackPort<P>(void callback(P response),
 ///
 /// Returns the `SendPort` expecting the single message.
 SendPort singleCompletePort<R, P>(Completer<R> completer,
-    {FutureOr<R> callback(P message), Duration timeout,
+    {FutureOr<R> callback(P message),
+    Duration timeout,
     FutureOr<R> onTimeout()}) {
   if (callback == null && timeout == null) {
     return singleCallbackPort<Object>((response) {

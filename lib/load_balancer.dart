@@ -131,9 +131,9 @@ class LoadBalancer implements Runner {
 
   Future<void> close() {
     if (_stopFuture != null) return _stopFuture;
-    _stopFuture =
-        MultiError.waitUnordered(_queue.take(_length).map((e) => e.close()))
-            .then(ignore);
+    _stopFuture = MultiError
+        .waitUnordered(_queue.take(_length).map((e) => e.close()))
+        .then(ignore);
     // Remove all entries.
     for (int i = 0; i < _length; i++) _queue[i].queueIndex = -1;
     _queue = null;
@@ -267,8 +267,12 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
   /// Whether the entry is still in the queue.
   bool get inQueue => queueIndex >= 0;
 
-  Future<R> run<R, P>(LoadBalancer balancer, int load,
-      FutureOr<R> function(P argument), argument, Duration timeout,
+  Future<R> run<R, P>(
+      LoadBalancer balancer,
+      int load,
+      FutureOr<R> function(P argument),
+      argument,
+      Duration timeout,
       FutureOr<R> onTimeout()) {
     return runner
         .run<R, P>(function, argument, timeout: timeout, onTimeout: onTimeout)
