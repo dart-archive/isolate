@@ -5,8 +5,10 @@
 /// A load-balancing runner pool.
 library isolate.load_balancer;
 
-import "dart:async" show Future, FutureOr;
+import "dart:async" show Future, FutureOr, Stream, StreamController;
+import "dart:isolate";
 
+import "isolate_runner.dart";
 import "runner.dart";
 import "src/errors.dart";
 import "src/util.dart";
@@ -139,6 +141,58 @@ class LoadBalancer implements Runner {
     _queue = null;
     _length = 0;
     return _stopFuture;
+  }
+
+  /// A combined broadcast stream of uncaught errors from the isolate runners.
+  ///
+  /// When listening on the stream, errors from the isolates will be reported
+  /// as errors in the stream. Be ready to handle the errors.
+  ///
+  /// The stream closes when all runners shut down.
+  Stream get errors {
+    StreamController controller;
+    List<RawReceivePort> ports;
+    controller = new StreamController.broadcast(
+        sync: true,
+        onListen: () {
+          var openedIsolates = _length;
+          ports = new List<RawReceivePort>(_length);
+          for (var i = 0; i < _length; ++i) {
+            final runner = _queue[i].runner;
+            if (runner is IsolateRunner) {
+              ports[i] = new RawReceivePort((message) {
+                if (message == null) {
+                  // Isolate shutdown.
+                  ports[i].close();
+                  if (--openedIsolates == 0) {
+                    controller.close();
+                  }
+                } else {
+                  // Uncaught error.
+                  String errorDescription = message[0];
+                  String stackDescription = message[1];
+                  var error =
+                      new RemoteError(errorDescription, stackDescription);
+                  controller.addError(error, error.stackTrace);
+                }
+              });
+              runner.isolate.addErrorListener(ports[i].sendPort);
+              runner.isolate.addOnExitListener(ports[i].sendPort);
+            }
+          }
+        },
+        onCancel: () {
+          for (var i = 0; i < _length; ++i) {
+            final runner = _queue[i].runner;
+            if (runner is IsolateRunner) {
+              runner.isolate.removeErrorListener(ports[i].sendPort);
+              runner.isolate.removeOnExitListener(ports[i].sendPort);
+              ports[i].close();
+              ports[i] = null;
+            }
+          }
+        });
+    return controller.stream;
   }
 
   /// Place [element] in heap at [index] or above.
