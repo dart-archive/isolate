@@ -151,19 +151,19 @@ class LoadBalancer implements Runner {
   /// The stream closes when all runners shut down.
   Stream get errors {
     StreamController controller;
-    List<RawReceivePort> ports;
+    Map<Runner, RawReceivePort> ports;
     controller = new StreamController.broadcast(
         sync: true,
         onListen: () {
           var openedIsolates = _length;
-          ports = new List<RawReceivePort>(_length);
-          for (var i = 0; i < _length; ++i) {
-            final runner = _queue[i].runner;
+          ports = <IsolateRunner, RawReceivePort>{};
+          for (final entry in _queue) {
+            final runner = entry.runner;
             if (runner is IsolateRunner) {
-              ports[i] = new RawReceivePort((message) {
+              ports[runner] = new RawReceivePort((message) {
                 if (message == null) {
                   // Isolate shutdown.
-                  ports[i].close();
+                  ports[runner].close();
                   if (--openedIsolates == 0) {
                     controller.close();
                   }
@@ -176,19 +176,19 @@ class LoadBalancer implements Runner {
                   controller.addError(error, error.stackTrace);
                 }
               });
-              runner.isolate.addErrorListener(ports[i].sendPort);
-              runner.isolate.addOnExitListener(ports[i].sendPort);
+              runner.isolate.addErrorListener(ports[runner].sendPort);
+              runner.isolate.addOnExitListener(ports[runner].sendPort);
             }
           }
         },
         onCancel: () {
-          for (var i = 0; i < _length; ++i) {
-            final runner = _queue[i].runner;
+          for (final entry in _queue) {
+            final runner = entry.runner;
             if (runner is IsolateRunner) {
-              runner.isolate.removeErrorListener(ports[i].sendPort);
-              runner.isolate.removeOnExitListener(ports[i].sendPort);
-              ports[i].close();
-              ports[i] = null;
+              runner.isolate.removeErrorListener(ports[runner].sendPort);
+              runner.isolate.removeOnExitListener(ports[runner].sendPort);
+              ports[runner].close();
+              ports.remove(runner);
             }
           }
         });
