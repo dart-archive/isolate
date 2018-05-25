@@ -26,7 +26,7 @@ Future<SendPort> _startHttpServer(List args) async {
   HttpListener listener = args[1];
 
   var server =
-      await HttpServer.bind(InternetAddress.ANY_IP_V6, port, shared: true);
+      await HttpServer.bind(InternetAddress.anyIpV6, port, shared: true);
   await listener.start(server);
 
   return singleCallbackPort((SendPort resultPort) {
@@ -90,7 +90,7 @@ main(List<String> args) async {
   // Used to ensure the requested port is available or to find an available
   // port if `0` is provided.
   ServerSocket socket =
-      await ServerSocket.bind(InternetAddress.ANY_IP_V6, port, shared: true);
+      await ServerSocket.bind(InternetAddress.anyIpV6, port, shared: true);
 
   port = socket.port;
   var isolates = await Future

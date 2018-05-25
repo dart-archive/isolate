@@ -1,3 +1,7 @@
+## 2.0.1
+
+* Use lower-case constants from dart:io.
+
 ## 2.0.0
 
 * Make port functions generic so they can be used in a Dart 2 type-safe way.
