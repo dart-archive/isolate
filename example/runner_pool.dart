@@ -30,8 +30,7 @@ void main() {
 
 // Compute fibonacci 1..limit
 Future<List<int>> parfib(int limit, int parallelity) {
-  return LoadBalancer
-      .create(parallelity, IsolateRunner.spawn)
+  return LoadBalancer.create(parallelity, IsolateRunner.spawn)
       .then((LoadBalancer pool) {
     var fibs = new List<Future<int>>(limit + 1);
     // Schedule all calls with exact load value and the heaviest task

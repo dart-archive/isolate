@@ -36,8 +36,7 @@ Future testCreateRunClose() {
 
 Future testSeparateIsolates() {
   // Check that each isolate has its own _global variable.
-  return Future
-      .wait(new Iterable.generate(2, (_) => IsolateRunner.spawn()))
+  return Future.wait(new Iterable.generate(2, (_) => IsolateRunner.spawn()))
       .then((runners) {
     Future runAll(action(IsolateRunner runner, int index)) {
       var indices = new Iterable.generate(runners.length);

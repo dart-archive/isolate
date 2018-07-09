@@ -131,9 +131,9 @@ class LoadBalancer implements Runner {
 
   Future<void> close() {
     if (_stopFuture != null) return _stopFuture;
-    _stopFuture = MultiError
-        .waitUnordered(_queue.take(_length).map((e) => e.close()))
-        .then(ignore);
+    _stopFuture =
+        MultiError.waitUnordered(_queue.take(_length).map((e) => e.close()))
+            .then(ignore);
     // Remove all entries.
     for (int i = 0; i < _length; i++) _queue[i].queueIndex = -1;
     _queue = null;

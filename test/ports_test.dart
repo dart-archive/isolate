@@ -282,7 +282,8 @@ void testSingleResponseFuture() {
   test("FutureTimeout", () {
     return singleResponseFuture((SendPort p) {
       // no-op.
-    }, timeout: MS * 100).then((v) {
+    }, timeout: MS * 100)
+        .then((v) {
       expect(v, null);
     });
   });
@@ -290,7 +291,8 @@ void testSingleResponseFuture() {
   test("FutureTimeoutValue", () {
     return singleResponseFuture((SendPort p) {
       // no-op.
-    }, timeout: MS * 100, timeoutValue: 42).then((v) {
+    }, timeout: MS * 100, timeoutValue: 42)
+        .then((v) {
       expect(v, 42);
     });
   });
@@ -348,7 +350,8 @@ void testSingleResultFuture() {
   test("Timeout", () {
     return singleResultFuture((SendPort p) {
       // no-op.
-    }, timeout: MS * 100).then((v) {
+    }, timeout: MS * 100)
+        .then((v) {
       fail("unreachable");
     }, onError: (e, s) {
       expect(e is TimeoutException, isTrue);

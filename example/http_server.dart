@@ -93,8 +93,8 @@ main(List<String> args) async {
       await ServerSocket.bind(InternetAddress.anyIPv6, port, shared: true);
 
   port = socket.port;
-  var isolates = await Future
-      .wait(new Iterable.generate(5, (_) => IsolateRunner.spawn()),
+  var isolates =
+      await Future.wait(new Iterable.generate(5, (_) => IsolateRunner.spawn()),
           cleanUp: (isolate) {
     isolate.close();
   });
