@@ -1,3 +1,7 @@
+## 2.0.3
+
+* Update SDK requirements.
+
 ## 2.0.1
 
 * Use lower-case constants from dart:io.
