@@ -12,7 +12,7 @@ import "package:isolate/registry.dart";
 
 import "package:test/test.dart";
 
-const MS = const Duration(milliseconds: 1);
+const _ms = Duration(milliseconds: 1);
 
 void main() {
   group("lookup", testLookup);
@@ -25,22 +25,22 @@ void main() {
   group("ObjectsAndTags", testObjectsAndTags);
 }
 
-class Oddity {
-  static const int EVEN = 0;
-  static const int ODD = 1;
+abstract class Oddity {
+  static const int even = 0;
+  static const int odd = 1;
 }
 
 Future<List> waitAll(int n, Future action(int n)) {
-  return Future.wait(new Iterable.generate(n, action));
+  return Future.wait(Iterable.generate(n, action));
 }
 
 void testLookup() {
   test("All", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
     return waitAll(10, (i) {
-      var element = new Element(i);
-      var tag = i.isEven ? Oddity.EVEN : Oddity.ODD;
+      var element = Element(i);
+      var tag = i.isEven ? Oddity.even : Oddity.odd;
       return registry.add(element, tags: [tag]);
     }).then((_) {
       return registry.lookup();
@@ -52,14 +52,14 @@ void testLookup() {
   });
 
   test("Odd", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
     return waitAll(10, (i) {
-      var element = new Element(i);
-      var tag = i.isEven ? Oddity.EVEN : Oddity.ODD;
+      var element = Element(i);
+      var tag = i.isEven ? Oddity.even : Oddity.odd;
       return registry.add(element, tags: [tag]);
     }).then((_) {
-      return registry.lookup(tags: [Oddity.ODD]);
+      return registry.lookup(tags: [Oddity.odd]);
     }).then((all) {
       expect(all.length, 5);
       expect(all.map((v) => v.id).toList()..sort(), [1, 3, 5, 7, 9]);
@@ -67,11 +67,11 @@ void testLookup() {
   });
 
   test("Max", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
     return waitAll(10, (i) {
-      var element = new Element(i);
-      var tag = i.isEven ? Oddity.EVEN : Oddity.ODD;
+      var element = Element(i);
+      var tag = i.isEven ? Oddity.even : Oddity.odd;
       return registry.add(element, tags: [tag]);
     }).then((_) {
       return registry.lookup(max: 5);
@@ -81,10 +81,10 @@ void testLookup() {
   });
 
   test("MultiTag", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
     return waitAll(25, (i) {
-      var element = new Element(i);
+      var element = Element(i);
       // Collect all numbers dividing i.
       var tags = [i];
       for (int j = 2; j < 25; j++) {
@@ -100,10 +100,10 @@ void testLookup() {
   });
 
   test("MultiTagMax", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
     return waitAll(25, (i) {
-      var element = new Element(i);
+      var element = Element(i);
       // Collect all numbers dividing i.
       var tags = [i];
       for (int j = 2; j < 25; j++) {
@@ -121,9 +121,9 @@ void testLookup() {
 
 void testAddLookup() {
   test("Add-lookup-identical", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object = new Object();
+    var object = Object();
     return registry.add(object).then((_) {
       return registry.lookup();
     }).then((entries) {
@@ -133,11 +133,11 @@ void testAddLookup() {
   });
 
   test("Add-multiple-identical", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object1 = new Object();
-    var object2 = new Object();
-    var object3 = new Object();
+    var object1 = Object();
+    var object2 = Object();
+    var object3 = Object();
     var objects = [object1, object2, object3];
     return Future.wait(objects.map(registry.add)).then((_) {
       return registry.lookup();
@@ -150,9 +150,9 @@ void testAddLookup() {
   });
 
   test("Add-twice", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object = new Object();
+    var object = Object();
     return registry.add(object).then((_) {
       return registry.add(object);
     }).then((_) {
@@ -163,10 +163,10 @@ void testAddLookup() {
   });
 
   test("Add-lookup-add-lookup", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object = new Object();
-    var object2 = new Object();
+    var object = Object();
+    var object2 = Object();
     return registry.add(object).then((_) {
       return registry.lookup();
     }).then((entries) {
@@ -188,9 +188,9 @@ void testAddLookup() {
   });
 
   test("lookup-add-lookup", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object = new Object();
+    var object = Object();
     return registry.lookup().then((entries) {
       expect(entries, isEmpty);
       return registry.add(object);
@@ -203,11 +203,11 @@ void testAddLookup() {
   });
 
   test("Add-multiple-tags", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object1 = new Object();
-    var object2 = new Object();
-    var object3 = new Object();
+    var object1 = Object();
+    var object2 = Object();
+    var object3 = Object();
     return registry.add(object1, tags: [1, 3, 5, 7]).then((_) {
       return registry.add(object2, tags: [2, 3, 6, 7]);
     }).then((_) {
@@ -234,9 +234,9 @@ void testAddLookup() {
 
 void testRemove() {
   test("Add-remove", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object = new Object();
+    var object = Object();
     return registry.add(object).then((removeCapability) {
       return registry.lookup().then((entries) {
         expect(entries, hasLength(1));
@@ -252,14 +252,14 @@ void testRemove() {
   });
 
   test("Add-remove-fail", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object = new Object();
+    var object = Object();
     return registry.add(object).then((removeCapability) {
       return registry.lookup().then((entries) {
         expect(entries, hasLength(1));
         expect(entries.first, same(object));
-        return registry.remove(object, new Capability());
+        return registry.remove(object, Capability());
       });
     }).then((removeSuccess) {
       expect(removeSuccess, isFalse);
@@ -269,9 +269,9 @@ void testRemove() {
 
 void testAddRemoveTags() {
   test("Add-remove-tag", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object = new Object();
+    var object = Object();
     return registry.add(object).then((removeCapability) {
       return registry.lookup(tags: ["x"]);
     }).then((entries) {
@@ -291,9 +291,9 @@ void testAddRemoveTags() {
   });
 
   test("Tag-twice", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object = new Object();
+    var object = Object();
     return registry.add(object, tags: ["x"]).then((removeCapability) {
       return registry.lookup(tags: ["x"]);
     }).then((entries) {
@@ -316,11 +316,11 @@ void testAddRemoveTags() {
   });
 
   test("Add-remove-multiple", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    var object1 = new Object();
-    var object2 = new Object();
-    var object3 = new Object();
+    var object1 = Object();
+    var object2 = Object();
+    var object3 = Object();
     var objects = [object1, object2, object3];
     return Future.wait(objects.map(registry.add)).then((_) {
       return registry.addTags([object1, object2], ["x", "y"]);
@@ -341,16 +341,16 @@ void testAddRemoveTags() {
   });
 
   test("Remove-wrong-object", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry = regman.registry;
-    expect(() => registry.removeTags([new Object()], ["x"]), throwsStateError);
+    expect(() => registry.removeTags([Object()], ["x"]), throwsStateError);
     regman.close();
   });
 }
 
 var _regmen = {};
 Registry createRegMan(id) {
-  var regman = new RegistryManager();
+  var regman = RegistryManager();
   _regmen[id] = regman;
   return regman.registry;
 }
@@ -360,7 +360,7 @@ void closeRegMan(id) {
 }
 
 void testCrossIsolate() {
-  var object = new Object();
+  var object = Object();
   test("regman-other-isolate", () {
     // Add, lookup and remove object in other isolate.
     return IsolateRunner.spawn().then((isolate) {
@@ -385,10 +385,10 @@ void testCrossIsolate() {
 
 void testTimeout() {
   test("Timeout-add", () {
-    RegistryManager regman = new RegistryManager(timeout: MS * 500);
+    RegistryManager regman = RegistryManager(timeout: _ms * 500);
     Registry registry = regman.registry;
     regman.close();
-    return registry.add(new Object()).then((_) {
+    return registry.add(Object()).then((_) {
       fail("unreachable");
     }, onError: (e, s) {
       expect(e is TimeoutException, isTrue);
@@ -396,9 +396,9 @@ void testTimeout() {
   });
 
   test("Timeout-remove", () {
-    RegistryManager regman = new RegistryManager(timeout: MS * 500);
+    RegistryManager regman = RegistryManager(timeout: _ms * 500);
     Registry registry = regman.registry;
-    var object = new Object();
+    var object = Object();
     return registry.add(object).then((rc) {
       regman.close();
       return registry.remove(object, rc).then((_) {
@@ -410,9 +410,9 @@ void testTimeout() {
   });
 
   test("Timeout-addTags", () {
-    RegistryManager regman = new RegistryManager(timeout: MS * 500);
+    RegistryManager regman = RegistryManager(timeout: _ms * 500);
     Registry registry = regman.registry;
-    var object = new Object();
+    var object = Object();
     return registry.add(object).then((rc) {
       regman.close();
       return registry.addTags([object], ["x"]).then((_) {
@@ -424,9 +424,9 @@ void testTimeout() {
   });
 
   test("Timeout-removeTags", () {
-    RegistryManager regman = new RegistryManager(timeout: MS * 500);
+    RegistryManager regman = RegistryManager(timeout: _ms * 500);
     Registry registry = regman.registry;
-    var object = new Object();
+    var object = Object();
     return registry.add(object).then((rc) {
       regman.close();
       return registry.removeTags([object], ["x"]).then((_) {
@@ -438,7 +438,7 @@ void testTimeout() {
   });
 
   test("Timeout-lookup", () {
-    RegistryManager regman = new RegistryManager(timeout: MS * 500);
+    RegistryManager regman = RegistryManager(timeout: _ms * 500);
     Registry registry = regman.registry;
     regman.close();
     registry.lookup().then((_) {
@@ -451,7 +451,7 @@ void testTimeout() {
 
 void testMultiRegistry() {
   test("dual-registry", () {
-    RegistryManager regman = new RegistryManager();
+    RegistryManager regman = RegistryManager();
     Registry registry1 = regman.registry;
     Registry registry2 = regman.registry;
     var l1 = ["x"];
@@ -482,7 +482,7 @@ void testObjectsAndTags() {
   testObject(object) {
     String name = "Transfer-${object.runtimeType}";
     test(name, () {
-      RegistryManager regman = new RegistryManager();
+      RegistryManager regman = RegistryManager();
       Registry registry1 = regman.registry;
       Registry registry2 = regman.registry;
       return registry1.add(object, tags: [object]).then((removeCapability) {
@@ -517,10 +517,10 @@ void testObjectsAndTags() {
   testObject("string");
   testObject(true);
   testObject(null);
-  testObject(new Element(42));
+  testObject(Element(42));
   testObject(#symbol);
   testObject(#_privateSymbol);
-  testObject(new Capability());
+  testObject(Capability());
   testObject(topLevelFunction);
 }
 

@@ -48,15 +48,15 @@ class LoadBalancer implements Runner {
   /// var isolatePool = LoadBalancer.create(10, IsolateRunner.spawn);
   /// ```
   static Future<LoadBalancer> create(int size, Future<Runner> createRunner()) {
-    return Future.wait(new Iterable.generate(size, (_) => createRunner()),
+    return Future.wait(Iterable.generate(size, (_) => createRunner()),
         cleanUp: (Runner runner) {
       runner.close();
-    }).then((runners) => new LoadBalancer(runners));
+    }).then((runners) => LoadBalancer(runners));
   }
 
   static List<_LoadBalancerEntry> _createEntries(Iterable<Runner> runners) {
-    var entries = runners.map((runner) => new _LoadBalancerEntry(runner));
-    return new List<_LoadBalancerEntry>.from(entries, growable: false);
+    var entries = runners.map((runner) => _LoadBalancerEntry(runner));
+    return List<_LoadBalancerEntry>.from(entries, growable: false);
   }
 
   /// Execute the command in the currently least loaded isolate.
@@ -71,7 +71,7 @@ class LoadBalancer implements Runner {
   /// the runner running the function, which will handle a timeout
   /// as normal.
   Future<R> run<R, P>(FutureOr<R> function(P argument), argument,
-      {Duration timeout, FutureOr<R> onTimeout(), int load: 100}) {
+      {Duration timeout, FutureOr<R> onTimeout(), int load = 100}) {
     RangeError.checkNotNegative(load, "load");
     _LoadBalancerEntry entry = _first;
     _increaseLoad(entry, load);
@@ -93,14 +93,14 @@ class LoadBalancer implements Runner {
   /// the runners running the function, which will handle any timeouts
   /// as normal.
   List<Future> runMultiple(int count, function(argument), argument,
-      {Duration timeout, onTimeout(), int load: 100}) {
+      {Duration timeout, onTimeout(), int load = 100}) {
     RangeError.checkValueInInterval(count, 1, _length, "count");
     RangeError.checkNotNegative(load, "load");
     if (count == 1) {
       return list1(run(function, argument,
           load: load, timeout: timeout, onTimeout: onTimeout));
     }
-    List result = new List<Future>(count);
+    List result = List<Future>(count);
     if (count == _length) {
       // No need to change the order of entries in the queue.
       for (int i = 0; i < count; i++) {
@@ -114,7 +114,7 @@ class LoadBalancer implements Runner {
       // command on each, then add them back to the queue.
       // This avoids running the same command twice in the same
       // isolate.
-      List entries = new List(count);
+      List entries = List(count);
       for (int i = 0; i < count; i++) {
         entries[i] = _removeFirst();
       }
@@ -135,7 +135,9 @@ class LoadBalancer implements Runner {
         MultiError.waitUnordered(_queue.take(_length).map((e) => e.close()))
             .then(ignore);
     // Remove all entries.
-    for (int i = 0; i < _length; i++) _queue[i].queueIndex = -1;
+    for (int i = 0; i < _length; i++) {
+      _queue[i].queueIndex = -1;
+    }
     _queue = null;
     _length = 0;
     return _stopFuture;
@@ -208,7 +210,7 @@ class LoadBalancer implements Runner {
 
   /// Adds entry to the queue.
   void _add(_LoadBalancerEntry entry) {
-    if (_stopFuture != null) throw new StateError("LoadBalancer is stopped");
+    if (_stopFuture != null) throw StateError("LoadBalancer is stopped");
     assert(entry.queueIndex < 0);
     if (_queue.length == _length) {
       _grow();
@@ -235,7 +237,7 @@ class LoadBalancer implements Runner {
   }
 
   void _grow() {
-    List newQueue = new List(_length * 2);
+    List newQueue = List(_length * 2);
     newQueue.setRange(0, _length, _queue);
     _queue = newQueue;
   }

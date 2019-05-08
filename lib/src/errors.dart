@@ -17,9 +17,9 @@ class MultiError extends Error {
   // A best-effort attempt is made at keeping below this number of lines
   // in the output.
   // If there are too many errors, they will all get at least one line.
-  static const int _MAX_LINES = 55;
+  static const int _maxLines = 55;
   // Minimum number of lines in the toString for each error.
-  static const int _MIN_LINES_PER_ERROR = 1;
+  static const int _minLinesPerError = 1;
 
   /// The actual errors.
   final List errors;
@@ -57,7 +57,7 @@ class MultiError extends Error {
         return;
       }
       var errorList = results.sublist(results.length - errors);
-      completer.completeError(new MultiError(errorList));
+      completer.completeError(MultiError(errorList));
     }
 
     var handleValue = (T v) {
@@ -66,7 +66,7 @@ class MultiError extends Error {
       // calling Future.then, probably by misusing a synchronous completer.
       results[values++] = v;
       if (errors > 0 && cleanUp != null) {
-        new Future.sync(() => cleanUp(v));
+        Future.sync(() => cleanUp(v));
       }
       checkDone();
     };
@@ -74,7 +74,7 @@ class MultiError extends Error {
       if (errors == 0 && cleanUp != null) {
         for (int i = 0; i < values; i++) {
           var value = results[i];
-          if (value != null) new Future.sync(() => cleanUp(value));
+          if (value != null) Future.sync(() => cleanUp(value));
         }
       }
       results[results.length - ++errors] = e;
@@ -84,9 +84,9 @@ class MultiError extends Error {
       count++;
       future.then(handleValue, onError: handleError);
     }
-    if (count == 0) return new Future.value(new List(0));
-    results = new List(count);
-    completer = new Completer();
+    if (count == 0) return Future.value(List(0));
+    results = List(count);
+    completer = Completer();
     return completer.future;
   }
 
@@ -116,7 +116,7 @@ class MultiError extends Error {
         completer.complete(results);
         return;
       }
-      completer.completeError(new MultiError(results));
+      completer.completeError(MultiError(results));
     }
 
     for (var future in futures) {
@@ -126,7 +126,7 @@ class MultiError extends Error {
         if (!hasError) {
           results[i] = v;
         } else if (cleanUp != null) {
-          new Future.sync(() => cleanUp(v));
+          Future.sync(() => cleanUp(v));
         }
         checkDone();
       }, onError: (e, s) {
@@ -134,28 +134,28 @@ class MultiError extends Error {
           if (cleanUp != null) {
             for (int i = 0; i < results.length; i++) {
               var result = results[i];
-              if (result != null) new Future.sync(() => cleanUp(result));
+              if (result != null) Future.sync(() => cleanUp(result));
             }
           }
-          results = new List<Object>(count);
+          results = List<Object>(count);
           hasError = true;
         }
         results[i] = e;
         checkDone();
       });
     }
-    if (count == 0) return new Future.value(new List(0));
-    results = new List<T>(count);
-    completer = new Completer();
+    if (count == 0) return Future.value(List(0));
+    results = List<T>(count);
+    completer = Completer();
     return completer.future;
   }
 
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write("Multiple Errors:\n");
-    int linesPerError = _MAX_LINES ~/ errors.length;
-    if (linesPerError < _MIN_LINES_PER_ERROR) {
-      linesPerError = _MIN_LINES_PER_ERROR;
+    int linesPerError = _maxLines ~/ errors.length;
+    if (linesPerError < _minLinesPerError) {
+      linesPerError = _minLinesPerError;
     }
 
     for (int index = 0; index < errors.length; index++) {

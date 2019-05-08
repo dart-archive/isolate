@@ -13,12 +13,12 @@ import "ports.dart";
 import "src/util.dart";
 
 // Command tags.
-const int _ADD = 0;
-const int _REMOVE = 1;
-const int _ADD_TAGS = 2;
-const int _REMOVE_TAGS = 3;
-const int _GET_TAGS = 4;
-const int _FIND = 5;
+const int _addValue = 0;
+const int _removeValue = 1;
+const int _addTagsValue = 2;
+const int _removeTagsValue = 3;
+const int _getTagsValue = 4;
+const int _findValue = 5;
 
 /// An isolate-compatible object registry.
 ///
@@ -48,7 +48,7 @@ class Registry<T> {
   // The cache is stored in an [Expando], not on the object.
   // This allows sending the `Registry` object through a `SendPort` without
   // also copying the cache.
-  static final Expando _caches = new Expando();
+  static final Expando _caches = Expando();
 
   /// Port for sending command to the central registry manager.
   SendPort _commandPort;
@@ -67,14 +67,14 @@ class Registry<T> {
   /// this registry should wait before assuming that an operation
   /// has failed.
   Registry.fromPort(SendPort commandPort,
-      {Duration timeout: const Duration(seconds: 5)})
+      {Duration timeout = const Duration(seconds: 5)})
       : _commandPort = commandPort,
         _timeout = timeout;
 
   _RegistryCache get _cache {
     _RegistryCache cache = _caches[this];
     if (cache != null) return cache;
-    cache = new _RegistryCache();
+    cache = _RegistryCache();
     _caches[this] = cache;
     return cache;
   }
@@ -85,7 +85,7 @@ class Registry<T> {
   int _getId(T element) {
     int id = _cache.id(element);
     if (id == null) {
-      throw new StateError("Not an element: ${Error.safeToString(element)}");
+      throw StateError("Not an element: ${Error.safeToString(element)}");
     }
     return id;
   }
@@ -106,12 +106,12 @@ class Registry<T> {
   Future<Capability> add(T element, {Iterable tags}) {
     _RegistryCache cache = _cache;
     if (cache.contains(element)) {
-      return new Future<Capability>.sync(() {
-        throw new StateError(
+      return Future<Capability>.sync(() {
+        throw StateError(
             "Object already in registry: ${Error.safeToString(element)}");
       });
     }
-    var completer = new Completer<Capability>();
+    var completer = Completer<Capability>();
     SendPort port = singleCompletePort(completer,
         callback: (List response) {
           assert(cache.isAdding(element));
@@ -123,11 +123,11 @@ class Registry<T> {
         timeout: _timeout,
         onTimeout: () {
           cache.stopAdding(element);
-          throw new TimeoutException("Future not completed", _timeout);
+          throw TimeoutException("Future not completed", _timeout);
         });
     if (tags != null) tags = tags.toList(growable: false);
     cache.setAdding(element);
-    _commandPort.send(list4(_ADD, element, tags, port));
+    _commandPort.send(list4(_addValue, element, tags, port));
     return completer.future;
   }
 
@@ -142,14 +142,14 @@ class Registry<T> {
   Future<bool> remove(T element, Capability removeCapability) {
     int id = _cache.id(element);
     if (id == null) {
-      return new Future<bool>.value(false);
+      return Future<bool>.value(false);
     }
-    var completer = new Completer<bool>();
+    var completer = Completer<bool>();
     SendPort port = singleCompletePort(completer, callback: (bool result) {
       _cache.remove(id);
       return result;
     }, timeout: _timeout);
-    _commandPort.send(list4(_REMOVE, id, removeCapability, port));
+    _commandPort.send(list4(_removeValue, id, removeCapability, port));
     return completer.future;
   }
 
@@ -177,17 +177,17 @@ class Registry<T> {
   Future<void> removeTags(Iterable<T> elements, Iterable tags) {
     List ids = elements.map(_getId).toList(growable: false);
     tags = tags.toList(growable: false);
-    var completer = new Completer<void>();
+    var completer = Completer<void>();
     SendPort port = singleCompletePort(completer, timeout: _timeout);
-    _commandPort.send(list4(_REMOVE_TAGS, ids, tags, port));
+    _commandPort.send(list4(_removeTagsValue, ids, tags, port));
     return completer.future;
   }
 
   Future<void> _addTags(List<int> ids, Iterable tags) {
     tags = tags.toList(growable: false);
-    var completer = new Completer<void>();
+    var completer = Completer<void>();
     SendPort port = singleCompletePort(completer, timeout: _timeout);
-    _commandPort.send(list4(_ADD_TAGS, ids, tags, port));
+    _commandPort.send(list4(_addTagsValue, ids, tags, port));
     return completer.future;
   }
 
@@ -202,15 +202,15 @@ class Registry<T> {
   /// Otherwise all matching elements are returned.
   Future<List<T>> lookup({Iterable tags, int max}) {
     if (max != null && max < 1) {
-      throw new RangeError.range(max, 1, null, "max");
+      throw RangeError.range(max, 1, null, "max");
     }
     if (tags != null) tags = tags.toList(growable: false);
-    var completer = new Completer<List<T>>();
+    var completer = Completer<List<T>>();
     SendPort port = singleCompletePort(completer, callback: (List response) {
       // Response is even-length list of (id, element) pairs.
       _RegistryCache cache = _cache;
       int count = response.length ~/ 2;
-      List result = new List(count);
+      List result = List(count);
       for (int i = 0; i < count; i++) {
         int id = response[i * 2];
         var element = response[i * 2 + 1];
@@ -219,7 +219,7 @@ class Registry<T> {
       }
       return result;
     }, timeout: _timeout);
-    _commandPort.send(list4(_FIND, tags, max, port));
+    _commandPort.send(list4(_findValue, tags, max, port));
     return completer.future;
   }
 }
@@ -230,14 +230,14 @@ class Registry<T> {
 /// An object is considered an element of the registry if it
 class _RegistryCache {
   // Temporary marker until an object gets an id.
-  static const int _BEING_ADDED = -1;
+  static const int _beingAdded = -1;
 
-  final Map<int, Object> id2object = new HashMap();
-  final Map<Object, int> object2id = new HashMap.identity();
+  final Map<int, Object> id2object = HashMap();
+  final Map<Object, int> object2id = HashMap.identity();
 
   int id(Object object) {
     int result = object2id[object];
-    if (result == _BEING_ADDED) return null;
+    if (result == _beingAdded) return null;
     return result;
   }
 
@@ -254,15 +254,15 @@ class _RegistryCache {
     return object;
   }
 
-  bool isAdding(element) => object2id[element] == _BEING_ADDED;
+  bool isAdding(element) => object2id[element] == _beingAdded;
 
   void setAdding(element) {
     assert(!contains(element));
-    object2id[element] = _BEING_ADDED;
+    object2id[element] = _beingAdded;
   }
 
   void stopAdding(element) {
-    assert(object2id[element] == _BEING_ADDED);
+    assert(object2id[element] == _beingAdded);
     object2id.remove(element);
   }
 
@@ -284,17 +284,17 @@ class RegistryManager {
 
   /// Maps id to entry. Each entry contains the id, the element, its tags,
   /// and a capability required to remove it again.
-  final _entries = new HashMap<int, _RegistryEntry>();
-  final _tag2id = new HashMap<Object, Set<int>>();
+  final _entries = HashMap<int, _RegistryEntry>();
+  final _tag2id = HashMap<Object, Set<int>>();
 
   /// Create a new registry managed by the created [RegistryManager].
   ///
   /// The optional [timeout] parameter can be set to the duration
   /// registry objects should wait before assuming that an operation
   /// has failed.
-  RegistryManager({Duration timeout: const Duration(seconds: 5)})
+  RegistryManager({Duration timeout = const Duration(seconds: 5)})
       : _timeout = timeout,
-        _commandPort = new RawReceivePort() {
+        _commandPort = RawReceivePort() {
     _commandPort.handler = _handleCommand;
   }
 
@@ -309,39 +309,39 @@ class RegistryManager {
   /// This registry can be sent to other isolates created using
   /// [Isolate.spawn].
   Registry get registry =>
-      new Registry.fromPort(_commandPort.sendPort, timeout: _timeout);
+      Registry.fromPort(_commandPort.sendPort, timeout: _timeout);
 
   // Used as argument to putIfAbsent.
-  static Set<int> _createSet() => new HashSet<int>();
+  static Set<int> _createSet() => HashSet<int>();
 
   void _handleCommand(List command) {
     switch (command[0]) {
-      case _ADD:
-        _add(command[1], command[2], command[3]);
+      case _addValue:
+        _add(command[1], command[2] as List, command[3] as SendPort);
         return;
-      case _REMOVE:
-        _remove(command[1], command[2], command[3]);
+      case _removeValue:
+        _remove(command[1], command[2] as Capability, command[3] as SendPort);
         return;
-      case _ADD_TAGS:
-        _addTags(command[1], command[2], command[3]);
+      case _addTagsValue:
+        _addTags(command[1], command[2] as List, command[3] as SendPort);
         return;
-      case _REMOVE_TAGS:
-        _removeTags(command[1], command[2], command[3]);
+      case _removeTagsValue:
+        _removeTags(command[1], command[2] as List, command[3] as SendPort);
         return;
-      case _GET_TAGS:
-        _getTags(command[1], command[2]);
+      case _getTagsValue:
+        _getTags(command[1], command[2] as SendPort);
         return;
-      case _FIND:
-        _find(command[1], command[2], command[3]);
+      case _findValue:
+        _find(command[1] as List, command[2] as int, command[3] as SendPort);
         return;
       default:
-        throw new UnsupportedError("Unknown command: ${command[0]}");
+        throw UnsupportedError("Unknown command: ${command[0]}");
     }
   }
 
   void _add(Object object, List tags, SendPort replyPort) {
     int id = ++_nextId;
-    var entry = new _RegistryEntry(id, object);
+    var entry = _RegistryEntry(id, object);
     _entries[id] = entry;
     if (tags != null) {
       for (var tag in tags) {
@@ -461,7 +461,7 @@ class RegistryManager {
 class _RegistryEntry {
   final int id;
   final Object element;
-  final Set tags = new HashSet();
-  final Capability removeCapability = new Capability();
+  final Set tags = HashSet();
+  final Capability removeCapability = Capability();
   _RegistryEntry(this.id, this.element);
 }
