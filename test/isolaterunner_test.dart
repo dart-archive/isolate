@@ -10,7 +10,7 @@ import "dart:isolate" show Capability;
 import "package:isolate/isolate_runner.dart";
 import "package:test/test.dart";
 
-const MS = const Duration(milliseconds: 1);
+const _ms = Duration(milliseconds: 1);
 
 void main() {
   test("create-close", testCreateClose);
@@ -36,10 +36,10 @@ Future testCreateRunClose() {
 
 Future testSeparateIsolates() {
   // Check that each isolate has its own _global variable.
-  return Future.wait(new Iterable.generate(2, (_) => IsolateRunner.spawn()))
+  return Future.wait(Iterable.generate(2, (_) => IsolateRunner.spawn()))
       .then((runners) {
     Future runAll(action(IsolateRunner runner, int index)) {
-      var indices = new Iterable.generate(runners.length);
+      var indices = Iterable.generate(runners.length);
       return Future.wait(indices.map((i) => action(runners[i], i)));
     }
 
@@ -60,7 +60,7 @@ void testIsolateFunctions() {
     bool mayComplete = false;
     return IsolateRunner.spawn().then((isolate) {
       isolate.pause();
-      new Future.delayed(MS * 500, () {
+      Future.delayed(_ms * 500, () {
         mayComplete = true;
         isolate.resume();
       });
@@ -71,17 +71,17 @@ void testIsolateFunctions() {
     });
   });
   test("pause2", () {
-    Capability c1 = new Capability();
-    Capability c2 = new Capability();
+    Capability c1 = Capability();
+    Capability c2 = Capability();
     int mayCompleteCount = 2;
     return IsolateRunner.spawn().then((isolate) {
       isolate.pause(c1);
       isolate.pause(c2);
-      new Future.delayed(MS * 500, () {
+      Future.delayed(_ms * 500, () {
         mayCompleteCount--;
         isolate.resume(c1);
       });
-      new Future.delayed(MS * 500, () {
+      Future.delayed(_ms * 500, () {
         mayCompleteCount--;
         isolate.resume(c2);
       });

@@ -30,7 +30,7 @@ Future<SendPort> _startHttpServer(List args) async {
   await listener.start(server);
 
   return singleCallbackPort((SendPort resultPort) {
-    sendFutureResult(new Future.sync(listener.stop), resultPort);
+    sendFutureResult(Future.sync(listener.stop), resultPort);
   });
 }
 
@@ -49,7 +49,7 @@ abstract class HttpListener {
 /// Returns the message content plus an ID describing the isolate that
 /// handled the request.
 class EchoHttpListener implements HttpListener {
-  static const _delay = const Duration(seconds: 2);
+  static const _delay = Duration(seconds: 2);
   static final _id = Isolate.current.hashCode;
   final SendPort _counter;
 
@@ -63,8 +63,10 @@ class EchoHttpListener implements HttpListener {
       await request.response.addStream(request);
       print("Request to $hashCode");
       request.response.write("#$_id\n");
-      var watch = new Stopwatch()..start();
-      while (watch.elapsed < _delay);
+      var watch = Stopwatch()..start();
+      while (watch.elapsed < _delay) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
       print("Response from $_id");
       await request.response.close();
       _counter.send(null);
@@ -80,12 +82,12 @@ class EchoHttpListener implements HttpListener {
 
 main(List<String> args) async {
   int port = 0;
-  if (args.length > 0) {
+  if (args.isNotEmpty) {
     port = int.parse(args[0]);
   }
 
-  var counter = new ReceivePort();
-  HttpListener listener = new EchoHttpListener(counter.sendPort);
+  var counter = ReceivePort();
+  HttpListener listener = EchoHttpListener(counter.sendPort);
 
   // Used to ensure the requested port is available or to find an available
   // port if `0` is provided.
@@ -93,9 +95,8 @@ main(List<String> args) async {
       await ServerSocket.bind(InternetAddress.anyIPv6, port, shared: true);
 
   port = socket.port;
-  var isolates =
-      await Future.wait(new Iterable.generate(5, (_) => IsolateRunner.spawn()),
-          cleanUp: (isolate) {
+  var isolates = await Future.wait(
+      Iterable.generate(5, (_) => IsolateRunner.spawn()), cleanUp: (isolate) {
     isolate.close();
   });
 

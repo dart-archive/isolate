@@ -48,7 +48,7 @@ import "src/util.dart";
 /// ```
 SendPort singleCallbackPort<P>(void callback(P response),
     {Duration timeout, P timeoutValue}) {
-  RawReceivePort responsePort = new RawReceivePort();
+  RawReceivePort responsePort = RawReceivePort();
   Zone zone = Zone.current;
   callback = zone.registerUnaryCallback(callback);
   Timer timer;
@@ -58,7 +58,7 @@ SendPort singleCallbackPort<P>(void callback(P response),
     zone.runUnary(callback, response as P);
   };
   if (timeout != null) {
-    timer = new Timer(timeout, () {
+    timer = Timer(timeout, () {
       responsePort.close();
       callback(timeoutValue);
     });
@@ -101,7 +101,7 @@ SendPort singleCompletePort<R, P>(Completer<R> completer,
       _castComplete<R>(completer, response);
     });
   }
-  RawReceivePort responsePort = new RawReceivePort();
+  RawReceivePort responsePort = RawReceivePort();
   Timer timer;
   if (callback == null) {
     responsePort.handler = (response) {
@@ -126,13 +126,13 @@ SendPort singleCompletePort<R, P>(Completer<R> completer,
     };
   }
   if (timeout != null) {
-    timer = new Timer(timeout, () {
+    timer = Timer(timeout, () {
       responsePort.close();
       if (onTimeout != null) {
-        completer.complete(new Future.sync(onTimeout));
+        completer.complete(Future.sync(onTimeout));
       } else {
-        completer.completeError(
-            new TimeoutException("Future not completed", timeout));
+        completer
+            .completeError(TimeoutException("Future not completed", timeout));
       }
     });
   }
@@ -161,8 +161,8 @@ SendPort singleCompletePort<R, P>(Completer<R> completer,
 /// The `Future` method won't be able to close the underlying [ReceivePort].
 Future<R> singleResponseFuture<R>(void action(SendPort responsePort),
     {Duration timeout, R timeoutValue}) {
-  Completer<R> completer = new Completer<R>.sync();
-  RawReceivePort responsePort = new RawReceivePort();
+  Completer<R> completer = Completer<R>.sync();
+  RawReceivePort responsePort = RawReceivePort();
   Timer timer;
   Zone zone = Zone.current;
   responsePort.handler = (Object response) {
@@ -173,7 +173,7 @@ Future<R> singleResponseFuture<R>(void action(SendPort responsePort),
     });
   };
   if (timeout != null) {
-    timer = new Timer(timeout, () {
+    timer = Timer(timeout, () {
       responsePort.close();
       completer.complete(timeoutValue);
     });
@@ -224,14 +224,14 @@ void sendFutureResult(Future<Object> future, SendPort resultPort) {
 /// a [TimeoutException].
 Future<R> singleResultFuture<R>(void action(SendPort responsePort),
     {Duration timeout, FutureOr<R> onTimeout()}) {
-  var completer = new Completer<R>.sync();
+  var completer = Completer<R>.sync();
   SendPort port = singleCompletePort<R, List<Object>>(completer,
       callback: receiveFutureResult, timeout: timeout, onTimeout: onTimeout);
   try {
     action(port);
   } catch (e, s) {
     // This should not happen.
-    sendFutureResult(new Future.error(e, s), port);
+    sendFutureResult(Future.error(e, s), port);
   }
   return completer.future;
 }
@@ -241,7 +241,7 @@ Future<R> singleResultFuture<R>(void action(SendPort responsePort),
 /// The [response] must be a message on the format sent by [sendFutureResult].
 void completeFutureResult<R>(List<Object> response, Completer<R> completer) {
   if (response.length == 2) {
-    var error = new RemoteError(response[0], response[1]);
+    var error = RemoteError(response[0], response[1]);
     completer.completeError(error, error.stackTrace);
   } else {
     R result = response[0];
@@ -255,11 +255,11 @@ void completeFutureResult<R>(List<Object> response, Completer<R> completer) {
 /// The [response] must be a message on the format sent by [sendFutureResult].
 Future<R> receiveFutureResult<R>(List<Object> response) {
   if (response.length == 2) {
-    var error = new RemoteError(response[0], response[1]);
-    return new Future.error(error, error.stackTrace);
+    var error = RemoteError(response[0], response[1]);
+    return Future.error(error, error.stackTrace);
   }
   R result = response[0];
-  return new Future<R>.value(result);
+  return Future<R>.value(result);
 }
 
 /// A [Future] and a [SendPort] that can be used to complete the future.
@@ -291,24 +291,24 @@ class SingleResponseChannel<R> {
   SingleResponseChannel(
       {FutureOr<R> callback(Null value),
       Duration timeout,
-      bool throwOnTimeout: false,
+      bool throwOnTimeout = false,
       FutureOr<R> onTimeout(),
       R timeoutValue})
-      : _receivePort = new RawReceivePort(),
-        _completer = new Completer<R>.sync(),
+      : _receivePort = RawReceivePort(),
+        _completer = Completer<R>.sync(),
         _callback = callback,
         _zone = Zone.current {
     _receivePort.handler = _handleResponse;
     if (timeout != null) {
-      _timer = new Timer(timeout, () {
+      _timer = Timer(timeout, () {
         // Executed as a timer event.
         _receivePort.close();
         if (!_completer.isCompleted) {
           if (throwOnTimeout) {
             _completer.completeError(
-                new TimeoutException("Timeout waiting for response", timeout));
+                TimeoutException("Timeout waiting for response", timeout));
           } else if (onTimeout != null) {
-            _completer.complete(new Future.sync(onTimeout));
+            _completer.complete(Future.sync(onTimeout));
           } else {
             _completer.complete(timeoutValue);
           }
@@ -333,7 +333,7 @@ class SingleResponseChannel<R> {
     _cancelTimer();
     if (!_completer.isCompleted) {
       // Not in event tail position, so complete the sync completer later.
-      _completer.complete(new Future.microtask(() => result));
+      _completer.complete(Future.microtask(() => result));
     }
   }
 
@@ -363,7 +363,7 @@ class SingleResponseChannel<R> {
       // created in a different error zone, an error from the root zone
       // would become uncaught.
       _zone.run(() {
-        _completer.complete(new Future.sync(() => _callback(v)));
+        _completer.complete(Future.sync(() => _callback(v)));
       });
     }
   }

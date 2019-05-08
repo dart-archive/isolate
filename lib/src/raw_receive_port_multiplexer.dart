@@ -35,7 +35,7 @@ class _MultiplexRawReceivePort implements RawReceivePort {
 
   _MultiplexRawReceivePort(this._multiplexer, this._id, this._handler);
 
-  void set handler(Function handler) {
+  set handler(Function handler) {
     this._handler = handler;
   }
 
@@ -63,8 +63,8 @@ class _MultiplexSendPort implements SendPort {
 /// A shared [RawReceivePort] that distributes messages to
 /// [RawReceivePort] instances that it manages.
 class RawReceivePortMultiplexer {
-  final RawReceivePort _port = new RawReceivePort();
-  final Map<int, _MultiplexRawReceivePort> _map = new HashMap();
+  final RawReceivePort _port = RawReceivePort();
+  final Map<int, _MultiplexRawReceivePort> _map = HashMap();
   int _nextId = 0;
 
   RawReceivePortMultiplexer() {
@@ -73,7 +73,7 @@ class RawReceivePortMultiplexer {
 
   RawReceivePort createRawReceivePort([void handler(value)]) {
     int id = _nextId++;
-    var result = new _MultiplexRawReceivePort(this, id, handler);
+    var result = _MultiplexRawReceivePort(this, id, handler);
     _map[id] = result;
     return result;
   }
@@ -93,7 +93,7 @@ class RawReceivePortMultiplexer {
   }
 
   SendPort _createSendPort(int id) {
-    return new _MultiplexSendPort(id, _port.sendPort);
+    return _MultiplexSendPort(id, _port.sendPort);
   }
 
   void _closePort(int id) {
