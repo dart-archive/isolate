@@ -9,6 +9,7 @@ import "dart:async" show Future, Completer, TimeoutException;
 import "dart:collection" show HashMap, HashSet;
 import "dart:isolate" show RawReceivePort, SendPort, Capability;
 
+import "isolate_runner.dart"; // For documentation.
 import "ports.dart";
 import "src/util.dart";
 
@@ -25,21 +26,70 @@ const int _findValue = 5;
 /// Objects can be stored as elements of a registry,
 /// have "tags" assigned to them, and be looked up by tag.
 ///
-/// A `Registry` object caches objects found using the [lookup]
+/// Since the registry is identity based, the objects must not be numbers,
+/// strings, booleans or null. See [Expando] for description of which objects
+/// are not treated as having a clear identity.
+///
+/// A [Registry] object caches objects found using the [lookup]
 /// method, or added using [add], and returns the same object every time
 /// they are requested.
-/// A different `Registry` object that works on the same registry will not
-/// preserve the identity of elements
+/// A different [Registry] object that works on the same underlying registry,
+/// will not preserve the identity of elements
 ///
 /// It is recommended to only have one `Registry` object working on the
 /// same registry in each isolate.
 ///
 /// When the registry is shared across isolates, both elements and tags must
 /// be sendable between the isolates.
-/// Between isolates spawned using [Isolate.spawn] from the same initial
-/// isolate, most objects can be sent.
-/// Only simple objects can be sent between isolates originating from different
-/// [Isolate.spawnUri] calls.
+/// See [SendPort] for details on the restrictions on objects which can be sent
+/// between isolates.
+///
+/// A registry can be sued to make a number of object available to separate
+/// workers in different isolates, for example ones created using
+/// [IsolateRunner], without sending all the objects to all the isolates.
+/// A worker can then request the data it needs, and it can add new data
+/// to the registry that will also be shared with all other workers.
+/// Example:
+/// ```dart
+/// main() {
+///   Registry<List<String>> dictionaryByFirstLetter = Registry();
+///   for (var letter in alphabet) {
+///     registry.add(
+///         allWords.where((w) => w.startsWith(letter).toList,
+///         tags: [letter]);
+///   }
+///   var loadBalancer = LoadBalancer(10);
+///   for (var task in tasks) {
+///     loadBalancer.run(_runTask, [task, dictionaryByFirstLetter]);
+///   }
+/// }
+/// _runTask(task, Registry<List<String>> dictionaryByFirstLetter) async {
+///   ...
+///   // Fetch just the words starting with the needed letter.
+///   var aWords = await dictionaryByFirstLetter.lookup(tags: [task.letter]);
+///   ...
+/// }
+/// ```
+///
+/// A registry can be treated like a distributed multimap from tags to
+/// objects, if each tag is only used once. Example:
+/// ```dart
+/// Registry<Capability> capabilities = Registry();
+/// // local code:
+///   ...
+///   capabilities.add(Capability(), ["create"]);
+///   capabilities.add(Capability(), ["read"]);
+///   capabilities.add(Capability(), ["update"]);
+///   capabilities.add(Capability(), ["delete"]);
+///   ...
+///   sendPort.send(capabilities);
+///
+/// // other isolate code:
+///   Registry<Capability> capabilities = await receiveFromPort();
+///
+///   Future<Capability> get createCapability => (await
+///      capabilities.lookup(tags: const ["create"])).first;
+/// ```
 class Registry<T> {
   // Most operations fail if they haven't received a response for this duration.
   final Duration _timeout;
@@ -153,7 +203,7 @@ class Registry<T> {
     return completer.future;
   }
 
-  /// Add tags to an object in the registry.
+  /// Add tags to objects in the registry.
   ///
   /// Each element of the registry has a number of tags associated with
   /// it. A tag is either associated with an element or not, adding it more
@@ -162,12 +212,12 @@ class Registry<T> {
   /// Tags are compared using [Object.==] equality.
   ///
   /// Fails if any of the elements are not in the registry.
-  Future addTags(Iterable<T> elements, Iterable tags) {
-    List ids = elements.map(_getId).toList(growable: false);
+  Future addTags(Iterable<T> elements, Iterable<Object> tags) {
+    List<Object> ids = elements.map(_getId).toList(growable: false);
     return _addTags(ids, tags);
   }
 
-  /// Remove tags from an object in the registry.
+  /// Remove tags from objects in the registry.
   ///
   /// After this operation, the [elements] will not be associated to the [tags].
   /// It doesn't matter whether the elements were associated with the tags
@@ -200,7 +250,7 @@ class Registry<T> {
   /// In that case, at most the first `max` results are returned,
   /// in whatever order the registry finds its results.
   /// Otherwise all matching elements are returned.
-  Future<List<T>> lookup({Iterable tags, int max}) {
+  Future<List<T>> lookup({Iterable<Object> tags, int max}) {
     if (max != null && max < 1) {
       throw RangeError.range(max, 1, null, "max");
     }
@@ -210,10 +260,10 @@ class Registry<T> {
       // Response is even-length list of (id, element) pairs.
       _RegistryCache cache = _cache;
       int count = response.length ~/ 2;
-      List result = List(count);
+      List<T> result = List(count);
       for (int i = 0; i < count; i++) {
-        int id = response[i * 2];
-        var element = response[i * 2 + 1];
+        var id = response[i * 2] as int;
+        var element = response[i * 2 + 1] as T;
         element = cache.register(id, element);
         result[i] = element;
       }

@@ -26,7 +26,7 @@ class LoadBalancer implements Runner {
   // Whether [stop] has been called.
   Future<void> _stopFuture;
 
-  /// Create a load balancer for [service] with [size] isolates.
+  /// Create a load balancer backed by the [Runner]s of [runners].
   LoadBalancer(Iterable<Runner> runners) : this._(_createEntries(runners));
 
   LoadBalancer._(List<_LoadBalancerEntry> entries)
