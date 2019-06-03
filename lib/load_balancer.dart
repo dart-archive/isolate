@@ -24,7 +24,7 @@ class LoadBalancer implements Runner {
   int _length;
 
   // Whether [stop] has been called.
-  Future _stopFuture;
+  Future<void> _stopFuture;
 
   /// Create a load balancer for [service] with [size] isolates.
   LoadBalancer(Iterable<Runner> runners) : this._(_createEntries(runners));
@@ -69,7 +69,8 @@ class LoadBalancer implements Runner {
   ///
   /// If [timeout] and [onTimeout] are provided, they are forwarded to
   /// the runner running the function, which will handle a timeout
-  /// as normal.
+  /// as normal. If the runners are running in other isolates, then
+  /// the [onTimeout] function must be a constant function.
   Future<R> run<R, P>(FutureOr<R> function(P argument), argument,
       {Duration timeout, FutureOr<R> onTimeout(), int load = 100}) {
     RangeError.checkNotNegative(load, "load");
@@ -92,15 +93,16 @@ class LoadBalancer implements Runner {
   /// If [timeout] and [onTimeout] are provided, they are forwarded to
   /// the runners running the function, which will handle any timeouts
   /// as normal.
-  List<Future> runMultiple(int count, function(argument), argument,
-      {Duration timeout, onTimeout(), int load = 100}) {
+  List<Future<R>> runMultiple<R, P>(int count, FutureOr<R> function(P argument),
+      P argument,
+      {Duration timeout, FutureOr<R> onTimeout(), int load = 100}) {
     RangeError.checkValueInInterval(count, 1, _length, "count");
     RangeError.checkNotNegative(load, "load");
     if (count == 1) {
-      return list1(run(function, argument,
-          load: load, timeout: timeout, onTimeout: onTimeout));
+      return List<Future<R>>(1)..[0] = run(function, argument,
+          load: load, timeout: timeout, onTimeout: onTimeout);
     }
-    List result = List<Future>(count);
+    var result = List<Future<R>>(count);
     if (count == _length) {
       // No need to change the order of entries in the queue.
       for (int i = 0; i < count; i++) {
@@ -114,7 +116,9 @@ class LoadBalancer implements Runner {
       // command on each, then add them back to the queue.
       // This avoids running the same command twice in the same
       // isolate.
-      List entries = List(count);
+      // We can't assume that the first [count] entries in the
+      // heap list are the least loaded.
+      var entries = List<_LoadBalancerEntry>(count);
       for (int i = 0; i < count; i++) {
         entries[i] = _removeFirst();
       }

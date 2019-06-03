@@ -1,12 +1,12 @@
 name: isolate
-version: 2.0.3-dev
+version: 2.0.3
 author: Dart Team <misc@dartlang.org>
 description: >-
   Utility functions and classes related to the 'dart:isolate' library.
 homepage: https://github.com/dart-lang/isolate
 
 environment:
-  sdk: '>=2.0.0 <3.0.0'
+  sdk: '>=2.3.0 <3.0.0'
 
 dev_dependencies:
   pedantic: ^1.0.0
