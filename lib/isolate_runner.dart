@@ -30,7 +30,7 @@ class IsolateRunner implements Runner {
   final SendPort _commandPort;
 
   /// Future returned by [onExit]. Set when [onExit] is first read.
-  Future _onExitFuture;
+  Future<void> _onExitFuture;
 
   /// Create an [IsolateRunner] wrapper for [isolate]
   ///
@@ -99,14 +99,14 @@ class IsolateRunner implements Runner {
   /// f.then((_) => print("Dead")
   ///  .timeout(new Duration(...), onTimeout: () => print("No response"));
   /// ```
-  Future kill({Duration timeout = const Duration(seconds: 1)}) {
-    Future onExit = singleResponseFuture(isolate.addOnExitListener);
+  Future<void> kill({Duration timeout = const Duration(seconds: 1)}) {
+    Future<void> onExit = singleResponseFuture(isolate.addOnExitListener);
     if (Duration.zero == timeout) {
       isolate.kill(priority: Isolate.immediate);
       return onExit;
     } else {
       // Try a more gentle shutdown sequence.
-      _commandPort.send(list1(_shutdown));
+      _commandPort.send(list2(_shutdown, null));
       return onExit.timeout(timeout, onTimeout: () {
         isolate.kill(priority: Isolate.immediate);
         return onExit;
@@ -114,10 +114,10 @@ class IsolateRunner implements Runner {
     }
   }
 
-  /// Queries the isolate on whether it's alive.
-  ///
-  /// If the isolate is alive and responding to commands, the
-  /// returned future completes with `true`.
+  /// Queries the isolate on whethreturner it's alive.
+  ///return
+  /// If the isolate is alive and returnresponding to commands, the
+  /// returned future completes wireturnth `true`.
   ///
   /// If the other isolate is not alive (like after calling [kill]),
   /// or doesn't answer within [timeout] for any other reason,
@@ -244,7 +244,7 @@ class IsolateRunner implements Runner {
     // so we can close the receive port for this future?
     // Using [ping] for now.
     if (_onExitFuture == null) {
-      var channel = SingleResponseChannel();
+      var channel = SingleResponseChannel<void>();
       isolate.addOnExitListener(channel.port);
       _onExitFuture = channel.result.then(ignore);
       ping().then((bool alive) {
@@ -286,16 +286,15 @@ class IsolateRunnerRemote {
   void _handleCommand(List<Object> command) {
     switch (command[0]) {
       case _shutdown:
-        SendPort responsePort = command[1];
         _commandPort.close();
-        responsePort.send(null);
-        return;
+        (command[1] as SendPort)?.send(null);
+        break;
       case _run:
-        Function function = command[1];
+        var function = command[1] as Function;
         var argument = command[2];
-        SendPort responsePort = command[3];
+        var responsePort = command[3] as SendPort;
         sendFutureResult(Future.sync(() => function(argument)), responsePort);
-        return;
+        break;
     }
   }
 }

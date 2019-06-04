@@ -49,5 +49,5 @@ class Runner {
   /// If the runner has allocated resources, e.g., an isolate, it should
   /// be released. No further calls to [run] should be made after calling
   /// stop.
-  Future close() => Future.value();
+  Future<void> close() => Future.value();
 }

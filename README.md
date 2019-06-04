@@ -1,6 +1,8 @@
 [![Build Status](https://travis-ci.org/dart-lang/isolate.svg?branch=master)](https://travis-ci.org/dart-lang/isolate)
 
 Helps with isolates and isolate communication in Dart.
+Requires the `dart:isolate` library being available.
+Isolates are not available for Dart on the web.
 
 The package contains individual libraries with different purposes.
 

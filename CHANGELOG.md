@@ -1,6 +1,9 @@
 ## 2.0.3
 
 * Update SDK requirements.
+* Fix bug in `IsolateRunner.kill` with a zero duration.
+* Update some type from `Future` to `Future<void>`.
+* Make `LoadBalancer.runMultiple` properly generic.
 
 ## 2.0.1
 
@@ -40,5 +43,5 @@
 ## 0.1.0
 
 * Initial version
-* Adds IsolateRunner as a helper around Isolate.
+* Adds `IsolateRunner` as a helper around Isolate.
 * Adds single-message port helpers and a load balancer.
