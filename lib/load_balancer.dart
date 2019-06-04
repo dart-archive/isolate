@@ -93,14 +93,15 @@ class LoadBalancer implements Runner {
   /// If [timeout] and [onTimeout] are provided, they are forwarded to
   /// the runners running the function, which will handle any timeouts
   /// as normal.
-  List<Future<R>> runMultiple<R, P>(int count, FutureOr<R> function(P argument),
-      P argument,
+  List<Future<R>> runMultiple<R, P>(
+      int count, FutureOr<R> function(P argument), P argument,
       {Duration timeout, FutureOr<R> onTimeout(), int load = 100}) {
     RangeError.checkValueInInterval(count, 1, _length, "count");
     RangeError.checkNotNegative(load, "load");
     if (count == 1) {
-      return List<Future<R>>(1)..[0] = run(function, argument,
-          load: load, timeout: timeout, onTimeout: onTimeout);
+      return List<Future<R>>(1)
+        ..[0] = run(function, argument,
+            load: load, timeout: timeout, onTimeout: onTimeout);
     }
     var result = List<Future<R>>(count);
     if (count == _length) {
