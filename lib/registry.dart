@@ -101,7 +101,7 @@ class Registry<T> {
   static final Expando _caches = Expando();
 
   /// Port for sending command to the central registry manager.
-  SendPort _commandPort;
+  final SendPort _commandPort;
 
   /// Create a registry linked to a [RegistryManager] through [commandPort].
   ///
@@ -329,8 +329,8 @@ class _RegistryCache {
 /// The central repository used by distributed [Registry] instances.
 class RegistryManager {
   final Duration _timeout;
+  final RawReceivePort _commandPort;
   int _nextId = 0;
-  RawReceivePort _commandPort;
 
   /// Maps id to entry. Each entry contains the id, the element, its tags,
   /// and a capability required to remove it again.

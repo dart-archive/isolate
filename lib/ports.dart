@@ -267,7 +267,7 @@ Future<R> receiveFutureResult<R>(List<Object> response) {
 /// The first value sent to [port] is used to complete the [result].
 /// All following values sent to `port` are ignored.
 class SingleResponseChannel<R> {
-  Zone _zone;
+  final Zone _zone;
   final RawReceivePort _receivePort;
   final Completer<R> _completer;
   final Function _callback;
