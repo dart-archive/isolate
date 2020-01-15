@@ -4,19 +4,19 @@
 
 library isolate.test.isolaterunner_test;
 
-import "dart:async" show Future;
-import "dart:isolate" show Capability;
+import 'dart:async' show Future;
+import 'dart:isolate' show Capability;
 
-import "package:isolate/isolate_runner.dart";
-import "package:test/test.dart";
+import 'package:isolate/isolate_runner.dart';
+import 'package:test/test.dart';
 
 const _ms = Duration(milliseconds: 1);
 
 void main() {
-  test("create-close", testCreateClose);
-  test("create-run-close", testCreateRunClose);
-  test("separate-isolates", testSeparateIsolates);
-  group("isolate functions", testIsolateFunctions);
+  test('create-close', testCreateClose);
+  test('create-run-close', testCreateRunClose);
+  test('separate-isolates', testSeparateIsolates);
+  group('isolate functions', testIsolateFunctions);
 }
 
 Future testCreateClose() {
@@ -27,8 +27,8 @@ Future testCreateClose() {
 
 Future testCreateRunClose() {
   return IsolateRunner.spawn().then((IsolateRunner runner) {
-    return runner.run(id, "testCreateRunClose").then((v) {
-      expect(v, "testCreateRunClose");
+    return runner.run(id, 'testCreateRunClose').then((v) {
+      expect(v, 'testCreateRunClose');
       return runner.close().then((_) => runner.onExit);
     });
   });
@@ -38,7 +38,7 @@ Future testSeparateIsolates() {
   // Check that each isolate has its own _global variable.
   return Future.wait(Iterable.generate(2, (_) => IsolateRunner.spawn()))
       .then((runners) {
-    Future runAll(action(IsolateRunner runner, int index)) {
+    Future runAll(Function(IsolateRunner runner, int index) action) {
       var indices = Iterable.generate(runners.length);
       return Future.wait(indices.map((i) => action(runners[i], i)));
     }
@@ -56,8 +56,8 @@ Future testSeparateIsolates() {
 }
 
 void testIsolateFunctions() {
-  test("pause", () {
-    bool mayComplete = false;
+  test('pause', () {
+    var mayComplete = false;
     return IsolateRunner.spawn().then((isolate) {
       isolate.pause();
       Future.delayed(_ms * 500, () {
@@ -70,10 +70,10 @@ void testIsolateFunctions() {
       }).whenComplete(isolate.close);
     });
   });
-  test("pause2", () {
-    Capability c1 = Capability();
-    Capability c2 = Capability();
-    int mayCompleteCount = 2;
+  test('pause2', () {
+    var c1 = Capability();
+    var c2 = Capability();
+    var mayCompleteCount = 2;
     return IsolateRunner.spawn().then((isolate) {
       isolate.pause(c1);
       isolate.pause(c2);
@@ -91,7 +91,7 @@ void testIsolateFunctions() {
       }).whenComplete(isolate.close);
     });
   });
-  test("ping", () {
+  test('ping', () {
     return IsolateRunner.spawn().then((isolate) {
       return isolate.ping().then((v) {
         expect(v, isTrue);
@@ -99,15 +99,15 @@ void testIsolateFunctions() {
       });
     });
   });
-  test("kill", () {
+  test('kill', () {
     return IsolateRunner.spawn().then((isolate) {
       return isolate.kill();
     });
   });
 }
 
-id(x) => x;
+dynamic id(x) => x;
 
 var _global;
-getGlobal(_) => _global;
-setGlobal(v) => _global = v;
+dynamic getGlobal(_) => _global;
+void setGlobal(v) => _global = v;

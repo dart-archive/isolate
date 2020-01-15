@@ -4,12 +4,12 @@
 
 library isolate.isolate_runner;
 
-import "dart:async";
-import "dart:isolate";
+import 'dart:async';
+import 'dart:isolate';
 
-import "ports.dart";
-import "runner.dart";
-import "src/util.dart";
+import 'ports.dart';
+import 'runner.dart';
+import 'src/util.dart';
 
 // Command tags. Shared between IsolateRunner and IsolateRunnerRemote.
 const int _shutdown = 0;
@@ -76,6 +76,7 @@ class IsolateRunner implements Runner {
   /// Can be used to create an isolate, use [run] to start a service, and
   /// then drop the connection and let the service control the isolate's
   /// life cycle.
+  @override
   Future<void> close() {
     var channel = SingleResponseChannel();
     _commandPort.send(list2(_shutdown, channel.port));
@@ -100,7 +101,7 @@ class IsolateRunner implements Runner {
   ///  .timeout(new Duration(...), onTimeout: () => print("No response"));
   /// ```
   Future<void> kill({Duration timeout = const Duration(seconds: 1)}) {
-    Future<void> onExit = singleResponseFuture(isolate.addOnExitListener);
+    var onExit = singleResponseFuture(isolate.addOnExitListener);
     if (Duration.zero == timeout) {
       isolate.kill(priority: Isolate.immediate);
       return onExit;
@@ -150,7 +151,7 @@ class IsolateRunner implements Runner {
   /// has no further effect. Only a single call to [resume] is needed
   /// to resume the isolate.
   void pause([Capability resumeCapability]) {
-    if (resumeCapability == null) resumeCapability = isolate.pauseCapability;
+    resumeCapability ??= isolate.pauseCapability;
     isolate.pause(resumeCapability);
   }
 
@@ -162,7 +163,7 @@ class IsolateRunner implements Runner {
   /// Even if `pause` has been called more than once with the same
   /// `resumeCapability`, a single resume call with stop the pause.
   void resume([Capability resumeCapability]) {
-    if (resumeCapability == null) resumeCapability = isolate.pauseCapability;
+    resumeCapability ??= isolate.pauseCapability;
     isolate.resume(resumeCapability);
   }
 
@@ -186,8 +187,9 @@ class IsolateRunner implements Runner {
   ///   await iso.close();
   /// }
   /// ```
-  Future<R> run<R, P>(FutureOr<R> function(P argument), P argument,
-      {Duration timeout, onTimeout()}) {
+  @override
+  Future<R> run<R, P>(FutureOr<R> Function(P argument) function, P argument,
+      {Duration timeout, Function() onTimeout}) {
     return singleResultFuture<R>((SendPort port) {
       _commandPort.send(list4(_run, function, argument, port));
     }, timeout: timeout, onTimeout: onTimeout);

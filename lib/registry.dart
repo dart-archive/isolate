@@ -5,13 +5,13 @@
 /// An isolate-compatible object registry and lookup service.
 library isolate.registry;
 
-import "dart:async" show Future, Completer, TimeoutException;
-import "dart:collection" show HashMap, HashSet;
-import "dart:isolate" show RawReceivePort, SendPort, Capability;
+import 'dart:async' show Future, Completer, TimeoutException;
+import 'dart:collection' show HashMap, HashSet;
+import 'dart:isolate' show RawReceivePort, SendPort, Capability;
 
-import "isolate_runner.dart"; // For documentation.
-import "ports.dart";
-import "src/util.dart";
+import 'isolate_runner.dart'; // For documentation.
+import 'ports.dart';
+import 'src/util.dart';
 
 // Command tags.
 const int _addValue = 0;
@@ -133,9 +133,9 @@ class Registry<T> {
   ///
   /// Throws if [element] is not an element in the registry.
   int _getId(T element) {
-    int id = _cache.id(element);
+    var id = _cache.id(element);
     if (id == null) {
-      throw StateError("Not an element: ${Error.safeToString(element)}");
+      throw StateError('Not an element: ${Error.safeToString(element)}');
     }
     return id;
   }
@@ -154,15 +154,15 @@ class Registry<T> {
   /// it preserves equality when sent through a [SendPort].
   /// This makes [Capability] objects a good choice for tags.
   Future<Capability> add(T element, {Iterable tags}) {
-    _RegistryCache cache = _cache;
+    var cache = _cache;
     if (cache.contains(element)) {
       return Future<Capability>.sync(() {
         throw StateError(
-            "Object already in registry: ${Error.safeToString(element)}");
+            'Object already in registry: ${Error.safeToString(element)}');
       });
     }
     var completer = Completer<Capability>();
-    SendPort port = singleCompletePort(completer,
+    var port = singleCompletePort(completer,
         callback: (List response) {
           assert(cache.isAdding(element));
           int id = response[0];
@@ -173,7 +173,7 @@ class Registry<T> {
         timeout: _timeout,
         onTimeout: () {
           cache.stopAdding(element);
-          throw TimeoutException("Future not completed", _timeout);
+          throw TimeoutException('Future not completed', _timeout);
         });
     if (tags != null) tags = tags.toList(growable: false);
     cache.setAdding(element);
@@ -190,12 +190,12 @@ class Registry<T> {
   /// when the object was added. If the capability is wrong, the
   /// object is not removed, and this function returns false.
   Future<bool> remove(T element, Capability removeCapability) {
-    int id = _cache.id(element);
+    var id = _cache.id(element);
     if (id == null) {
       return Future<bool>.value(false);
     }
     var completer = Completer<bool>();
-    SendPort port = singleCompletePort(completer, callback: (bool result) {
+    var port = singleCompletePort(completer, callback: (bool result) {
       _cache.remove(id);
       return result;
     }, timeout: _timeout);
@@ -228,7 +228,7 @@ class Registry<T> {
     List ids = elements.map(_getId).toList(growable: false);
     tags = tags.toList(growable: false);
     var completer = Completer<void>();
-    SendPort port = singleCompletePort(completer, timeout: _timeout);
+    var port = singleCompletePort(completer, timeout: _timeout);
     _commandPort.send(list4(_removeTagsValue, ids, tags, port));
     return completer.future;
   }
@@ -236,7 +236,7 @@ class Registry<T> {
   Future<void> _addTags(List<int> ids, Iterable tags) {
     tags = tags.toList(growable: false);
     var completer = Completer<void>();
-    SendPort port = singleCompletePort(completer, timeout: _timeout);
+    var port = singleCompletePort(completer, timeout: _timeout);
     _commandPort.send(list4(_addTagsValue, ids, tags, port));
     return completer.future;
   }
@@ -252,16 +252,16 @@ class Registry<T> {
   /// Otherwise all matching elements are returned.
   Future<List<T>> lookup({Iterable<Object> tags, int max}) {
     if (max != null && max < 1) {
-      throw RangeError.range(max, 1, null, "max");
+      throw RangeError.range(max, 1, null, 'max');
     }
     if (tags != null) tags = tags.toList(growable: false);
     var completer = Completer<List<T>>();
-    SendPort port = singleCompletePort(completer, callback: (List response) {
+    var port = singleCompletePort(completer, callback: (List response) {
       // Response is even-length list of (id, element) pairs.
-      _RegistryCache cache = _cache;
-      int count = response.length ~/ 2;
-      List<T> result = List(count);
-      for (int i = 0; i < count; i++) {
+      var cache = _cache;
+      var count = response.length ~/ 2;
+      var result = List<T>(count);
+      for (var i = 0; i < count; i++) {
         var id = response[i * 2] as int;
         var element = response[i * 2 + 1] as T;
         element = cache.register(id, element);
@@ -286,7 +286,7 @@ class _RegistryCache {
   final Map<Object, int> object2id = HashMap.identity();
 
   int id(Object object) {
-    int result = object2id[object];
+    var result = object2id[object];
     if (result == _beingAdded) return null;
     return result;
   }
@@ -385,12 +385,12 @@ class RegistryManager {
         _find(command[1] as List, command[2] as int, command[3] as SendPort);
         return;
       default:
-        throw UnsupportedError("Unknown command: ${command[0]}");
+        throw UnsupportedError('Unknown command: ${command[0]}');
     }
   }
 
   void _add(Object object, List tags, SendPort replyPort) {
-    int id = ++_nextId;
+    var id = ++_nextId;
     var entry = _RegistryEntry(id, object);
     _entries[id] = entry;
     if (tags != null) {
@@ -403,7 +403,7 @@ class RegistryManager {
   }
 
   void _remove(int id, Capability removeCapability, SendPort replyPort) {
-    _RegistryEntry entry = _entries[id];
+    var entry = _entries[id];
     if (entry == null || entry.removeCapability != removeCapability) {
       replyPort.send(false);
       return;
@@ -418,8 +418,8 @@ class RegistryManager {
   void _addTags(List<int> ids, List tags, SendPort replyPort) {
     assert(tags != null);
     assert(tags.isNotEmpty);
-    for (int id in ids) {
-      _RegistryEntry entry = _entries[id];
+    for (var id in ids) {
+      var entry = _entries[id];
       if (entry == null) continue; // Entry was removed.
       entry.tags.addAll(tags);
       for (var tag in tags) {
@@ -433,8 +433,8 @@ class RegistryManager {
   void _removeTags(List<int> ids, List tags, SendPort replyPort) {
     assert(tags != null);
     assert(tags.isNotEmpty);
-    for (int id in ids) {
-      _RegistryEntry entry = _entries[id];
+    for (var id in ids) {
+      var entry = _entries[id];
       if (entry == null) continue; // Object was removed.
       entry.tags.removeAll(tags);
     }
@@ -447,7 +447,7 @@ class RegistryManager {
   }
 
   void _getTags(int id, SendPort replyPort) {
-    _RegistryEntry entry = _entries[id];
+    var entry = _entries[id];
     if (entry != null) {
       replyPort.send(entry.tags.toList(growable: false));
     } else {
@@ -465,8 +465,8 @@ class RegistryManager {
     }
     // Create new set, then start removing ids not also matched
     // by other tags.
-    Set<int> matchingIds = matchingFirstTagIds.toSet();
-    for (int i = 1; i < tags.length; i++) {
+    var matchingIds = matchingFirstTagIds.toSet();
+    for (var i = 1; i < tags.length; i++) {
       var tagIds = _tag2id[tags[i]];
       if (tagIds == null) return const [];
       matchingIds.retainAll(tagIds);
@@ -477,11 +477,11 @@ class RegistryManager {
 
   void _find(List tags, int max, SendPort replyPort) {
     assert(max == null || max > 0);
-    List result = [];
+    var result = [];
     if (tags == null || tags.isEmpty) {
       var entries = _entries.values;
       if (max != null) entries = entries.take(max);
-      for (_RegistryEntry entry in entries) {
+      for (var entry in entries) {
         result.add(entry.id);
         result.add(entry.element);
       }
@@ -489,7 +489,7 @@ class RegistryManager {
       return;
     }
     var matchingIds = _findTaggedIds(tags);
-    if (max == null) max = matchingIds.length; // All results.
+    max ??= matchingIds.length; // All results.
     for (var id in matchingIds) {
       result.add(id);
       result.add(_entries[id].element);

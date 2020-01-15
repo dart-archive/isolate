@@ -4,26 +4,26 @@
 
 library isolate.example.runner_pool;
 
-import "dart:async" show Future;
+import 'dart:async' show Future;
 
-import "package:isolate/load_balancer.dart";
-import "package:isolate/isolate_runner.dart";
+import 'package:isolate/load_balancer.dart';
+import 'package:isolate/isolate_runner.dart';
 
 void main() {
-  int N = 44;
+  var N = 44;
   var sw = Stopwatch()..start();
   // Compute fib up to 42 with 4 isolates.
   parfib(N, 4).then((v1) {
     var t1 = sw.elapsedMilliseconds;
     sw.stop();
     sw.reset();
-    print("fib#4($N) = ${v1[N]}, ms: $t1");
+    print('fib#4($N) = ${v1[N]}, ms: $t1');
     sw.start();
     // Then compute fib up to 42 with 2 isolates.
     parfib(N, 2).then((v2) {
       var t2 = sw.elapsedMilliseconds;
       sw.stop();
-      print("fib#2($N) = ${v2[N]}, ms: $t2");
+      print('fib#2($N) = ${v2[N]}, ms: $t2');
     });
   });
 }
@@ -35,7 +35,7 @@ Future<List<int>> parfib(int limit, int parallelity) {
     var fibs = List<Future<int>>(limit + 1);
     // Schedule all calls with exact load value and the heaviest task
     // assigned first.
-    schedule(a, b, i) {
+    void schedule(a, b, i) {
       if (i < limit) {
         schedule(a + b, a, i + 1);
       }

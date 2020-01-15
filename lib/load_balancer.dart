@@ -5,11 +5,11 @@
 /// A load-balancing runner pool.
 library isolate.load_balancer;
 
-import "dart:async" show Future, FutureOr;
+import 'dart:async' show Future, FutureOr;
 
-import "runner.dart";
-import "src/errors.dart";
-import "src/util.dart";
+import 'runner.dart';
+import 'src/errors.dart';
+import 'src/util.dart';
 
 /// A pool of runners, ordered by load.
 ///
@@ -32,7 +32,7 @@ class LoadBalancer implements Runner {
   LoadBalancer._(List<_LoadBalancerEntry> entries)
       : _queue = entries,
         _length = entries.length {
-    for (int i = 0; i < _length; i++) {
+    for (var i = 0; i < _length; i++) {
       _queue[i].queueIndex = i;
     }
   }
@@ -47,7 +47,8 @@ class LoadBalancer implements Runner {
   /// ```dart
   /// var isolatePool = LoadBalancer.create(10, IsolateRunner.spawn);
   /// ```
-  static Future<LoadBalancer> create(int size, Future<Runner> createRunner()) {
+  static Future<LoadBalancer> create(
+      int size, Future<Runner> Function() createRunner) {
     return Future.wait(Iterable.generate(size, (_) => createRunner()),
         cleanUp: (Runner runner) {
       runner.close();
@@ -71,10 +72,11 @@ class LoadBalancer implements Runner {
   /// the runner running the function, which will handle a timeout
   /// as normal. If the runners are running in other isolates, then
   /// the [onTimeout] function must be a constant function.
-  Future<R> run<R, P>(FutureOr<R> function(P argument), argument,
-      {Duration timeout, FutureOr<R> onTimeout(), int load = 100}) {
-    RangeError.checkNotNegative(load, "load");
-    _LoadBalancerEntry entry = _first;
+  @override
+  Future<R> run<R, P>(FutureOr<R> Function(P argument) function, argument,
+      {Duration timeout, FutureOr<R> Function() onTimeout, int load = 100}) {
+    RangeError.checkNotNegative(load, 'load');
+    var entry = _first;
     _increaseLoad(entry, load);
     return entry.run(this, load, function, argument, timeout, onTimeout);
   }
@@ -94,10 +96,10 @@ class LoadBalancer implements Runner {
   /// the runners running the function, which will handle any timeouts
   /// as normal.
   List<Future<R>> runMultiple<R, P>(
-      int count, FutureOr<R> function(P argument), P argument,
-      {Duration timeout, FutureOr<R> onTimeout(), int load = 100}) {
-    RangeError.checkValueInInterval(count, 1, _length, "count");
-    RangeError.checkNotNegative(load, "load");
+      int count, FutureOr<R> Function(P argument) function, P argument,
+      {Duration timeout, FutureOr<R> Function() onTimeout, int load = 100}) {
+    RangeError.checkValueInInterval(count, 1, _length, 'count');
+    RangeError.checkNotNegative(load, 'load');
     if (count == 1) {
       return List<Future<R>>(1)
         ..[0] = run(function, argument,
@@ -106,8 +108,8 @@ class LoadBalancer implements Runner {
     var result = List<Future<R>>(count);
     if (count == _length) {
       // No need to change the order of entries in the queue.
-      for (int i = 0; i < count; i++) {
-        _LoadBalancerEntry entry = _queue[i];
+      for (var i = 0; i < count; i++) {
+        var entry = _queue[i];
         entry.load += load;
         result[i] =
             entry.run(this, load, function, argument, timeout, onTimeout);
@@ -120,11 +122,11 @@ class LoadBalancer implements Runner {
       // We can't assume that the first [count] entries in the
       // heap list are the least loaded.
       var entries = List<_LoadBalancerEntry>(count);
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         entries[i] = _removeFirst();
       }
-      for (int i = 0; i < count; i++) {
-        _LoadBalancerEntry entry = entries[i];
+      for (var i = 0; i < count; i++) {
+        var entry = entries[i];
         entry.load += load;
         _add(entry);
         result[i] =
@@ -134,13 +136,14 @@ class LoadBalancer implements Runner {
     return result;
   }
 
+  @override
   Future<void> close() {
     if (_stopFuture != null) return _stopFuture;
     _stopFuture =
         MultiError.waitUnordered(_queue.take(_length).map((e) => e.close()))
             .then(ignore);
     // Remove all entries.
-    for (int i = 0; i < _length; i++) {
+    for (var i = 0; i < _length; i++) {
       _queue[i].queueIndex = -1;
     }
     _queue = null;
@@ -155,8 +158,8 @@ class LoadBalancer implements Runner {
   /// parent, swap it with the parent.
   void _bubbleUp(_LoadBalancerEntry element, int index) {
     while (index > 0) {
-      int parentIndex = (index - 1) ~/ 2;
-      _LoadBalancerEntry parent = _queue[parentIndex];
+      var parentIndex = (index - 1) ~/ 2;
+      var parent = _queue[parentIndex];
       if (element.compareTo(parent) > 0) break;
       _queue[index] = parent;
       parent.queueIndex = index;
@@ -173,12 +176,12 @@ class LoadBalancer implements Runner {
   /// swap it with the highest priority child.
   void _bubbleDown(_LoadBalancerEntry element, int index) {
     while (true) {
-      int childIndex = index * 2 + 1; // Left child index.
+      var childIndex = index * 2 + 1; // Left child index.
       if (childIndex >= _length) break;
-      _LoadBalancerEntry child = _queue[childIndex];
-      int rightChildIndex = childIndex + 1;
+      var child = _queue[childIndex];
+      var rightChildIndex = childIndex + 1;
       if (rightChildIndex < _length) {
-        _LoadBalancerEntry rightChild = _queue[rightChildIndex];
+        var rightChild = _queue[rightChildIndex];
         if (rightChild.compareTo(child) < 0) {
           childIndex = rightChildIndex;
           child = rightChild;
@@ -198,11 +201,11 @@ class LoadBalancer implements Runner {
   /// The entry is expected to be either added back to the queue
   /// immediately or have its stop method called.
   void _remove(_LoadBalancerEntry entry) {
-    int index = entry.queueIndex;
+    var index = entry.queueIndex;
     if (index < 0) return;
     entry.queueIndex = -1;
     _length--;
-    _LoadBalancerEntry replacement = _queue[_length];
+    var replacement = _queue[_length];
     _queue[_length] = null;
     if (index < _length) {
       if (entry.compareTo(replacement) < 0) {
@@ -215,12 +218,12 @@ class LoadBalancer implements Runner {
 
   /// Adds entry to the queue.
   void _add(_LoadBalancerEntry entry) {
-    if (_stopFuture != null) throw StateError("LoadBalancer is stopped");
+    if (_stopFuture != null) throw StateError('LoadBalancer is stopped');
     assert(entry.queueIndex < 0);
     if (_queue.length == _length) {
       _grow();
     }
-    int index = _length;
+    var index = _length;
     _length = index + 1;
     _bubbleUp(entry, index);
   }
@@ -242,7 +245,7 @@ class LoadBalancer implements Runner {
   }
 
   void _grow() {
-    List newQueue = List(_length * 2);
+    var newQueue = List(_length * 2);
     newQueue.setRange(0, _length, _queue);
     _queue = newQueue;
   }
@@ -253,7 +256,7 @@ class LoadBalancer implements Runner {
   }
 
   _LoadBalancerEntry _removeFirst() {
-    _LoadBalancerEntry result = _first;
+    var result = _first;
     _remove(result);
     return result;
   }
@@ -277,10 +280,10 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
   Future<R> run<R, P>(
       LoadBalancer balancer,
       int load,
-      FutureOr<R> function(P argument),
+      FutureOr<R> Function(P argument) function,
       argument,
       Duration timeout,
-      FutureOr<R> onTimeout()) {
+      FutureOr<R> Function() onTimeout) {
     return runner
         .run<R, P>(function, argument, timeout: timeout, onTimeout: onTimeout)
         .whenComplete(() {
@@ -290,5 +293,6 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
 
   Future close() => runner.close();
 
+  @override
   int compareTo(_LoadBalancerEntry other) => load - other.load;
 }
