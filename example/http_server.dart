@@ -4,17 +4,17 @@
 
 library isolate.example.http_server;
 
-import "dart:async";
-import "dart:io";
-import "dart:isolate";
+import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 
-import "package:isolate/isolate_runner.dart";
-import "package:isolate/ports.dart";
-import "package:isolate/runner.dart";
+import 'package:isolate/isolate_runner.dart';
+import 'package:isolate/ports.dart';
+import 'package:isolate/runner.dart';
 
 Future<Future<Object> Function()> runHttpServer(
     Runner runner, int port, HttpListener listener) async {
-  SendPort stopPort = await runner.run(_startHttpServer, [port, listener]);
+  var stopPort = await runner.run(_startHttpServer, [port, listener]);
 
   return () => _sendStop(stopPort);
 }
@@ -57,31 +57,33 @@ class EchoHttpListener implements HttpListener {
 
   EchoHttpListener(this._counter);
 
+  @override
   Future start(HttpServer server) async {
-    print("Starting isolate $_id");
+    print('Starting isolate $_id');
     _subscription = server.listen((HttpRequest request) async {
       await request.response.addStream(request);
-      print("Request to $hashCode");
-      request.response.write("#$_id\n");
+      print('Request to $hashCode');
+      request.response.write('#$_id\n');
       var watch = Stopwatch()..start();
       while (watch.elapsed < _delay) {
         await Future.delayed(const Duration(milliseconds: 100));
       }
-      print("Response from $_id");
+      print('Response from $_id');
       await request.response.close();
       _counter.send(null);
     });
   }
 
+  @override
   Future stop() async {
-    print("Stopping isolate $_id");
+    print('Stopping isolate $_id');
     await _subscription.cancel();
     _subscription = null;
   }
 }
 
-main(List<String> args) async {
-  int port = 0;
+void main(List<String> args) async {
+  var port = 0;
   if (args.isNotEmpty) {
     port = int.parse(args[0]);
   }
@@ -91,7 +93,7 @@ main(List<String> args) async {
 
   // Used to ensure the requested port is available or to find an available
   // port if `0` is provided.
-  ServerSocket socket =
+  var socket =
       await ServerSocket.bind(InternetAddress.anyIPv6, port, shared: true);
 
   port = socket.port;
@@ -100,30 +102,29 @@ main(List<String> args) async {
     isolate.close();
   });
 
-  List<Future<Object> Function()> stoppers =
-      await Future.wait(isolates.map((IsolateRunner isolate) {
+  var stoppers = await Future.wait(isolates.map((IsolateRunner isolate) {
     return runHttpServer(isolate, socket.port, listener);
   }), cleanUp: (shutdownServer) {
     shutdownServer();
   });
 
   await socket.close();
-  int count = 25;
+  var count = 25;
 
-  print("Server listening on port $port for $count requests");
-  print("Test with:");
-  print("  ab -l -c10 -n $count http://localhost:$port/");
+  print('Server listening on port $port for $count requests');
+  print('Test with:');
+  print('  ab -l -c10 -n $count http://localhost:$port/');
   print("where 'ab' is ApacheBench from, e.g., apache2_tools.");
 
   await for (var _ in counter) {
     count--;
     if (count == 0) {
-      print("Shutting down");
+      print('Shutting down');
       for (var stopper in stoppers) {
         await stopper();
       }
       counter.close();
     }
   }
-  print("Finished");
+  print('Finished');
 }

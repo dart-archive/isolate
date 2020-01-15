@@ -23,10 +23,10 @@
 /// global mutex, so it may be a bottleneck, but it's not clear how slow it is).
 library isolate.raw_receive_port_multiplexer;
 
-import "dart:collection";
-import "dart:isolate";
+import 'dart:collection';
+import 'dart:isolate';
 
-import "util.dart";
+import 'util.dart';
 
 class _MultiplexRawReceivePort implements RawReceivePort {
   final RawReceivePortMultiplexer _multiplexer;
@@ -35,14 +35,17 @@ class _MultiplexRawReceivePort implements RawReceivePort {
 
   _MultiplexRawReceivePort(this._multiplexer, this._id, this._handler);
 
+  @override
   set handler(Function handler) {
-    this._handler = handler;
+    _handler = handler;
   }
 
+  @override
   void close() {
     _multiplexer._closePort(_id);
   }
 
+  @override
   SendPort get sendPort => _multiplexer._createSendPort(_id);
 
   void _invokeHandler(message) {
@@ -55,6 +58,7 @@ class _MultiplexSendPort implements SendPort {
   final int _id;
   _MultiplexSendPort(this._id, this._sendPort);
 
+  @override
   void send(message) {
     _sendPort.send(list2(_id, message));
   }
@@ -71,8 +75,8 @@ class RawReceivePortMultiplexer {
     _port.handler = _multiplexResponse;
   }
 
-  RawReceivePort createRawReceivePort([void handler(value)]) {
-    int id = _nextId++;
+  RawReceivePort createRawReceivePort([void Function(dynamic) handler]) {
+    var id = _nextId++;
     var result = _MultiplexRawReceivePort(this, id, handler);
     _map[id] = result;
     return result;
@@ -85,7 +89,7 @@ class RawReceivePortMultiplexer {
   void _multiplexResponse(list) {
     int id = list[0];
     var message = list[1];
-    _MultiplexRawReceivePort receivePort = _map[id];
+    var receivePort = _map[id];
     // If the receive port is closed, messages are dropped, just as for
     // the normal ReceivePort.
     if (receivePort == null) return; // Port closed.

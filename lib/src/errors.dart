@@ -10,7 +10,7 @@
 /// that it returns all the errors.
 library isolate.errors;
 
-import "dart:async";
+import 'dart:async';
 
 class MultiError extends Error {
   // Limits the number of lines included from each error's error message.
@@ -41,11 +41,11 @@ class MultiError extends Error {
   /// The order of values is not preserved (if that is needed, use
   /// [wait]).
   static Future<List<Object>> waitUnordered<T>(Iterable<Future<T>> futures,
-      {void cleanUp(T successResult)}) {
+      {void Function(T successResult) cleanUp}) {
     Completer<List<Object>> completer;
-    int count = 0;
-    int errors = 0;
-    int values = 0;
+    var count = 0;
+    var errors = 0;
+    var values = 0;
     // Initialized to `new List(count)` when count is known.
     // Filled up with values on the left, errors on the right.
     // Order is not preserved.
@@ -72,7 +72,7 @@ class MultiError extends Error {
     };
     var handleError = (e, s) {
       if (errors == 0 && cleanUp != null) {
-        for (int i = 0; i < values; i++) {
+        for (var i = 0; i < values; i++) {
           var value = results[i];
           if (value != null) Future.sync(() => cleanUp(value));
         }
@@ -100,11 +100,11 @@ class MultiError extends Error {
   /// [MultiError.errors] list will have errors in the corresponding slots,
   /// and `null` for non-errors.
   Future<List<Object>> wait<T>(Iterable<Future<T>> futures,
-      {void cleanUp(T successResult)}) {
+      {void Function(T successResult) cleanUp}) {
     Completer<List<Object>> completer;
-    int count = 0;
-    bool hasError = false;
-    int completed = 0;
+    var count = 0;
+    var hasError = false;
+    var completed = 0;
     // Initialized to `new List(count)` when count is known.
     // Filled with values until the first error, then cleared
     // and filled with errors.
@@ -120,7 +120,7 @@ class MultiError extends Error {
     }
 
     for (var future in futures) {
-      int i = count;
+      var i = count;
       count++;
       future.then((v) {
         if (!hasError) {
@@ -132,7 +132,7 @@ class MultiError extends Error {
       }, onError: (e, s) {
         if (!hasError) {
           if (cleanUp != null) {
-            for (int i = 0; i < results.length; i++) {
+            for (var i = 0; i < results.length; i++) {
               var result = results[i];
               if (result != null) Future.sync(() => cleanUp(result));
             }
@@ -150,30 +150,31 @@ class MultiError extends Error {
     return completer.future;
   }
 
+  @override
   String toString() {
-    StringBuffer buffer = StringBuffer();
-    buffer.write("Multiple Errors:\n");
-    int linesPerError = _maxLines ~/ errors.length;
+    var buffer = StringBuffer();
+    buffer.write('Multiple Errors:\n');
+    var linesPerError = _maxLines ~/ errors.length;
     if (linesPerError < _minLinesPerError) {
       linesPerError = _minLinesPerError;
     }
 
-    for (int index = 0; index < errors.length; index++) {
+    for (var index = 0; index < errors.length; index++) {
       var error = errors[index];
       if (error == null) continue;
-      String errorString = error.toString();
-      int end = 0;
-      for (int i = 0; i < linesPerError; i++) {
+      var errorString = error.toString();
+      var end = 0;
+      for (var i = 0; i < linesPerError; i++) {
         end = errorString.indexOf('\n', end) + 1;
         if (end == 0) {
           end = errorString.length;
           break;
         }
       }
-      buffer.write("#$index: ");
+      buffer.write('#$index: ');
       buffer.write(errorString.substring(0, end));
       if (end < errorString.length) {
-        buffer.write("...\n");
+        buffer.write('...\n');
       }
     }
     return buffer.toString();
