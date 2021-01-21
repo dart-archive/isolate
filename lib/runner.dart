@@ -6,7 +6,7 @@
 /// or even isolate.
 library isolate.runner;
 
-import 'dart:async' show Future, FutureOr;
+import 'dart:async' show FutureOr;
 
 /// Calls a function with an argument.
 ///

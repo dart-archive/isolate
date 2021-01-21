@@ -4,7 +4,6 @@
 
 library isolate.test.isolaterunner_test;
 
-import 'dart:async' show Future;
 import 'dart:isolate' show Capability;
 
 import 'package:isolate/isolate_runner.dart';

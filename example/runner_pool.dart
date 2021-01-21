@@ -4,8 +4,6 @@
 
 library isolate.example.runner_pool;
 
-import 'dart:async' show Future;
-
 import 'package:isolate/load_balancer.dart';
 import 'package:isolate/isolate_runner.dart';
 

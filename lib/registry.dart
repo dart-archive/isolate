@@ -5,7 +5,7 @@
 /// An isolate-compatible object registry and lookup service.
 library isolate.registry;
 
-import 'dart:async' show Future, Completer, TimeoutException;
+import 'dart:async' show Completer, TimeoutException;
 import 'dart:collection' show HashMap, HashSet;
 import 'dart:isolate' show RawReceivePort, SendPort, Capability;
 

@@ -5,7 +5,7 @@
 /// A load-balancing runner pool.
 library isolate.load_balancer;
 
-import 'dart:async' show Future, FutureOr;
+import 'dart:async' show FutureOr;
 
 import 'runner.dart';
 import 'src/errors.dart';
