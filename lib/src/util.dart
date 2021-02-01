@@ -10,29 +10,30 @@
 void ignore(_) {}
 
 /// Create a single-element fixed-length list.
-List<Object> list1(Object v1) => List(1)..[0] = v1;
+List<Object> list1(Object v1) => List.filled(1, v1);
 
 /// Create a two-element fixed-length list.
-List<Object> list2(Object v1, Object v2) => List(2)
+List<Object> list2(Object v1, Object v2) => List.filled(2, null)
   ..[0] = v1
   ..[1] = v2;
 
 /// Create a three-element fixed-length list.
-List<Object> list3(Object v1, Object v2, Object v3) => List(3)
+List<Object> list3(Object v1, Object v2, Object v3) => List.filled(3, null)
   ..[0] = v1
   ..[1] = v2
   ..[2] = v3;
 
 /// Create a four-element fixed-length list.
-List<Object> list4(Object v1, Object v2, Object v3, Object v4) => List(4)
-  ..[0] = v1
-  ..[1] = v2
-  ..[2] = v3
-  ..[3] = v4;
+List<Object> list4(Object v1, Object v2, Object v3, Object v4) =>
+    List.filled(4, null)
+      ..[0] = v1
+      ..[1] = v2
+      ..[2] = v3
+      ..[3] = v4;
 
 /// Create a five-element fixed-length list.
 List<Object> list5(Object v1, Object v2, Object v3, Object v4, Object v5) =>
-    List(5)
+    List.filled(5, null)
       ..[0] = v1
       ..[1] = v2
       ..[2] = v3

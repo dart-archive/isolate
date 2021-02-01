@@ -84,8 +84,8 @@ class MultiError extends Error {
       count++;
       future.then(handleValue, onError: handleError);
     }
-    if (count == 0) return Future.value(List(0));
-    results = List(count);
+    if (count == 0) return Future.value(List.filled(0, null));
+    results = List.filled(count, null);
     completer = Completer();
     return completer.future;
   }
@@ -137,15 +137,15 @@ class MultiError extends Error {
               if (result != null) Future.sync(() => cleanUp(result));
             }
           }
-          results = List<Object>(count);
+          results = List<Object>.filled(count, null);
           hasError = true;
         }
         results[i] = e;
         checkDone();
       });
     }
-    if (count == 0) return Future.value(List(0));
-    results = List<T>(count);
+    if (count == 0) return Future.value(List.filled(0, null));
+    results = List<T>.filled(count, null);
     completer = Completer();
     return completer.future;
   }

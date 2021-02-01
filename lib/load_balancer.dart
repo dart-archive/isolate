@@ -101,11 +101,11 @@ class LoadBalancer implements Runner {
     RangeError.checkValueInInterval(count, 1, _length, 'count');
     RangeError.checkNotNegative(load, 'load');
     if (count == 1) {
-      return List<Future<R>>(1)
-        ..[0] = run(function, argument,
-            load: load, timeout: timeout, onTimeout: onTimeout);
+      return List<Future<R>>.filled(1,
+        run(function, argument,
+            load: load, timeout: timeout, onTimeout: onTimeout));
     }
-    var result = List<Future<R>>(count);
+    var result = List<Future<R>>.filled(count, null);
     if (count == _length) {
       // No need to change the order of entries in the queue.
       for (var i = 0; i < count; i++) {
@@ -121,7 +121,7 @@ class LoadBalancer implements Runner {
       // isolate.
       // We can't assume that the first [count] entries in the
       // heap list are the least loaded.
-      var entries = List<_LoadBalancerEntry>(count);
+      var entries = List<_LoadBalancerEntry>.filled(count, null);
       for (var i = 0; i < count; i++) {
         entries[i] = _removeFirst();
       }
@@ -245,7 +245,7 @@ class LoadBalancer implements Runner {
   }
 
   void _grow() {
-    var newQueue = List(_length * 2);
+    var newQueue = List<_LoadBalancerEntry>.filled(_length * 2, null);
     newQueue.setRange(0, _length, _queue);
     _queue = newQueue;
   }

@@ -32,7 +32,7 @@ void main() {
 Future<List<int>> parfib(int limit, int parallelity) {
   return LoadBalancer.create(parallelity, IsolateRunner.spawn)
       .then((LoadBalancer pool) {
-    var fibs = List<Future<int>>(limit + 1);
+    var fibs = List<Future<int>>.filled(limit + 1, null);
     // Schedule all calls with exact load value and the heaviest task
     // assigned first.
     void schedule(a, b, i) {
