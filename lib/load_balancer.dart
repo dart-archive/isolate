@@ -101,9 +101,10 @@ class LoadBalancer implements Runner {
     RangeError.checkValueInInterval(count, 1, _length, 'count');
     RangeError.checkNotNegative(load, 'load');
     if (count == 1) {
-      return List<Future<R>>.filled(1,
-        run(function, argument,
-            load: load, timeout: timeout, onTimeout: onTimeout));
+      return List<Future<R>>.filled(
+          1,
+          run(function, argument,
+              load: load, timeout: timeout, onTimeout: onTimeout));
     }
     var result = List<Future<R>>.filled(count, null);
     if (count == _length) {
