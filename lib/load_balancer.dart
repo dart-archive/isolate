@@ -168,7 +168,7 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
     });
   }
 
-  Future? close() => runner.close();
+  Future close() => runner.close();
 
   @override
   int compareTo(_LoadBalancerEntry other) => load - other.load;
