@@ -39,7 +39,7 @@ Future<List<int>> parfib(int limit, int parallelity) {
       if (i < limit) {
         schedule(a + b, a, i + 1);
       }
-      fibs[i] = pool.run<int, int>(fib, i, load: a).then((value) => value);
+      fibs[i] = pool.run<int, int>(fib, i, load: a);
     }
 
     schedule(0, 1, 0);
