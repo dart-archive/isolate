@@ -66,7 +66,7 @@ class LoadBalancer implements Runner {
   /// as normal. If the runners are running in other isolates, then
   /// the [onTimeout] function must be a constant function.
   @override
-  Future<R?> run<R, P>(FutureOr<R> Function(P argument) function, P argument,
+  Future<R> run<R, P>(FutureOr<R> Function(P argument) function, P argument,
       {Duration? timeout, FutureOr<R> Function()? onTimeout, int load = 100}) {
     RangeError.checkNotNegative(load, 'load');
     final entry = _queue.removeFirst();
@@ -89,18 +89,19 @@ class LoadBalancer implements Runner {
   /// If [timeout] and [onTimeout] are provided, they are forwarded to
   /// the runners running the function, which will handle any timeouts
   /// as normal.
-  List<FutureOr<R?>> runMultiple<R, P>(
+  List<FutureOr<R>> runMultiple<R, P>(
       int count, FutureOr<R> Function(P argument) function, P argument,
       {Duration? timeout, FutureOr<R> Function()? onTimeout, int load = 100}) {
     RangeError.checkValueInInterval(count, 1, length, 'count');
     RangeError.checkNotNegative(load, 'load');
     if (count == 1) {
-      return List<FutureOr<R?>>.filled(
+      return List<FutureOr<R>>.filled(
           1,
           run(function, argument,
               load: load, timeout: timeout, onTimeout: onTimeout));
     }
-    final result = List<FutureOr<R?>>.filled(count, null);
+    final placeholderFuture = Future<R>.value();
+    final result = List<FutureOr<R>>.filled(count, placeholderFuture);
     if (count == length) {
       // No need to change the order of entries in the queue.
       _queue.unorderedElements.mapIndexed((index, entry) {
@@ -115,12 +116,13 @@ class LoadBalancer implements Runner {
       // isolate.
       // We can't assume that the first [count] entries in the
       // heap list are the least loaded.
-      var entries = List<_LoadBalancerEntry?>.filled(count, null);
+      var entries = List<_LoadBalancerEntry>.generate(
+        count,
+        (_) => _queue.removeFirst(),
+        growable: false,
+      );
       for (var i = 0; i < count; i++) {
-        entries[i] = _queue.removeFirst();
-      }
-      for (var i = 0; i < count; i++) {
-        var entry = entries[i]!;
+        var entry = entries[i];
         entry.load += load;
         _queue.add(entry);
         result[i] =
@@ -131,12 +133,12 @@ class LoadBalancer implements Runner {
   }
 
   @override
-  Future<void>? close() {
-    if (_stopFuture != null) return _stopFuture;
+  Future<void> close() {
+    if (_stopFuture != null) return _stopFuture!;
     _stopFuture =
         MultiError.waitUnordered(_queue.removeAll().map((e) => e.close()))
             .then(ignore);
-    return _stopFuture;
+    return _stopFuture!;
   }
 }
 
@@ -149,7 +151,7 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
 
   _LoadBalancerEntry(Runner runner) : runner = runner;
 
-  Future<R?> run<R, P>(
+  Future<R> run<R, P>(
       LoadBalancer balancer,
       int load,
       FutureOr<R> Function(P argument) function,

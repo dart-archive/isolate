@@ -35,7 +35,7 @@ class Runner {
   /// complete with a [TimeoutException].
   ///
   /// The default implementation runs the function in the current isolate.
-  Future<R?> run<R, P>(FutureOr<R> Function(P argument) function, P argument,
+  Future<R> run<R, P>(FutureOr<R> Function(P argument) function, P argument,
       {Duration? timeout, FutureOr<R> Function()? onTimeout}) {
     var result = Future.sync(() => function(argument));
     if (timeout != null) {
@@ -49,5 +49,5 @@ class Runner {
   /// If the runner has allocated resources, e.g., an isolate, it should
   /// be released. No further calls to [run] should be made after calling
   /// stop.
-  Future<void>? close() => Future.value();
+  Future<void> close() => Future.value();
 }
