@@ -194,13 +194,13 @@ class Registry<T> {
     if (id == null) {
       return Future<bool>.value(false);
     }
-    var completer = Completer<bool?>();
-    var port = singleCompletePort(completer, callback: (bool? result) {
+    var completer = Completer<bool>();
+    var port = singleCompletePort(completer, callback: (bool result) {
       _cache.remove(id);
       return result;
     }, timeout: _timeout);
     _commandPort.send(list4(_removeValue, id, removeCapability, port));
-    return completer.future.then((result) => result ?? false);
+    return completer.future;
   }
 
   /// Add tags to objects in the registry.
@@ -255,11 +255,11 @@ class Registry<T> {
       throw RangeError.range(max, 1, null, 'max');
     }
     if (tags != null) tags = tags.toList(growable: false);
-    var completer = Completer<List<T>?>();
-    var port = singleCompletePort(completer, callback: (List? response) {
+    var completer = Completer<List<T>>();
+    var port = singleCompletePort(completer, callback: (List response) {
       // Response is even-length list of (id, element) pairs.
       var cache = _cache;
-      var count = response!.length ~/ 2;
+      var count = response.length ~/ 2;
       var result = List<T?>.filled(count, null);
       for (var i = 0; i < count; i++) {
         var id = response[i * 2] as int;
@@ -270,7 +270,7 @@ class Registry<T> {
       return result;
     }, timeout: _timeout);
     _commandPort.send(list4(_findValue, tags, max, port));
-    return await completer.future ?? List.empty();
+    return await completer.future;
   }
 }
 
