@@ -134,11 +134,12 @@ class LoadBalancer implements Runner {
 
   @override
   Future<void> close() {
-    if (_stopFuture != null) return _stopFuture!;
-    _stopFuture =
+    var stopFuture = _stopFuture;
+    if (stopFuture != null) return stopFuture;
+    _stopFuture = (stopFuture =
         MultiError.waitUnordered(_queue.removeAll().map((e) => e.close()))
-            .then(ignore);
-    return _stopFuture!;
+            .then(ignore));
+    return stopFuture;
   }
 }
 
