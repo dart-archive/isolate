@@ -16,7 +16,7 @@ Future<Future<Object?> Function()> runHttpServer(
     Runner runner, int port, HttpListener listener) async {
   var stopPort = await runner.run(_startHttpServer, [port, listener]);
 
-  return (() => _sendStop(stopPort!));
+  return (() => _sendStop(stopPort));
 }
 
 Future<Object?> _sendStop(SendPort stopPort) => singleResponseFuture(stopPort.send);
