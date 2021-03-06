@@ -223,11 +223,11 @@ Future<R> singleResponseFutureWithTimeout<R>(
 /// The result of [future] is sent on [resultPort] in a form expected by
 /// either [receiveFutureResult], [completeFutureResult], or
 /// by the port of [singleResultFuture].
-void sendFutureResult(Future<Object?> future, SendPort? resultPort) {
+void sendFutureResult(Future<Object?> future, SendPort resultPort) {
   future.then<Null>((value) {
-    resultPort!.send(list1(value));
+    resultPort.send(list1(value));
   }, onError: (error, stack) {
-    resultPort!.send(list2('$error', '$stack'));
+    resultPort.send(list2('$error', '$stack'));
   });
 }
 

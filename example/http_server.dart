@@ -30,7 +30,7 @@ Future<SendPort> _startHttpServer(List args) async {
   await listener.start(server);
 
   return singleCallbackPort((SendPort? resultPort) {
-    sendFutureResult(Future.sync(listener.stop), resultPort);
+    sendFutureResult(Future.sync(listener.stop), resultPort!);
   });
 }
 
