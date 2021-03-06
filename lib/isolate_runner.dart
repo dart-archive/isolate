@@ -295,7 +295,7 @@ class IsolateRunnerRemote {
         var function = command[1] as Function;
         var argument = command[2];
         var responsePort = command[3] as SendPort;
-        sendFutureResult(Future.sync((() => function(argument))), responsePort);
+        sendFutureResult(Future.sync(() => function(argument)), responsePort);
         break;
     }
   }
