@@ -203,11 +203,11 @@ class IsolateRunner implements Runner {
   /// The stream closes when the isolate shuts down.
   Stream get errors {
     late StreamController controller;
-    RawReceivePort? port;
+    late RawReceivePort port;
     void handleError(message) {
       if (message == null) {
         // Isolate shutdown.
-        port!.close();
+        port.close();
         controller.close();
       } else {
         // Uncaught error.
@@ -222,14 +222,13 @@ class IsolateRunner implements Runner {
         sync: true,
         onListen: () {
           port = RawReceivePort(handleError);
-          isolate.addErrorListener(port!.sendPort);
-          isolate.addOnExitListener(port!.sendPort);
+          isolate.addErrorListener(port.sendPort);
+          isolate.addOnExitListener(port.sendPort);
         },
         onCancel: () {
-          isolate.removeErrorListener(port!.sendPort);
-          isolate.removeOnExitListener(port!.sendPort);
-          port!.close();
-          port = null;
+          isolate.removeErrorListener(port.sendPort);
+          isolate.removeOnExitListener(port.sendPort);
+          port.close();
         });
     return controller.stream;
   }
