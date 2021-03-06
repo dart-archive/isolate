@@ -164,7 +164,11 @@ class IsolateRunner implements Runner {
   /// `resumeCapability`, a single resume call with stop the pause.
   void resume([Capability? resumeCapability]) {
     resumeCapability ??= isolate.pauseCapability;
-    isolate.resume(resumeCapability!);
+
+    /// according to [Isolate.resume] docs
+    /// calling with this capability won't have any effect
+    resumeCapability ??= Capability();
+    isolate.resume(resumeCapability);
   }
 
   /// Execute `function(argument)` in the isolate and return the result.
