@@ -22,7 +22,7 @@ class MultiError extends Error {
   static const int _minLinesPerError = 1;
 
   /// The actual errors.
-  final List? errors;
+  final List errors;
 
   /// Create a `MultiError` based on a list of errors.
   ///
@@ -49,14 +49,14 @@ class MultiError extends Error {
     // Initialized to `new List(count)` when count is known.
     // Filled up with values on the left, errors on the right.
     // Order is not preserved.
-    List<Object?>? results;
+    late List<Object?> results;
     void checkDone() {
       if (errors + values < count) return;
       if (errors == 0) {
         completer.complete(results);
         return;
       }
-      var errorList = results!.sublist(results.length - errors);
+      var errorList = results.sublist(results.length - errors);
       completer.completeError(MultiError(errorList));
     }
 
@@ -64,7 +64,7 @@ class MultiError extends Error {
       // If this fails because [results] is null, there is a future
       // which breaks the Future API by completing immediately when
       // calling Future.then, probably by misusing a synchronous completer.
-      results![values++] = v;
+      results[values++] = v;
       if (errors > 0 && cleanUp != null) {
         Future.sync(() => cleanUp(v));
       }
@@ -73,11 +73,11 @@ class MultiError extends Error {
     var handleError = (e, s) {
       if (errors == 0 && cleanUp != null) {
         for (var i = 0; i < values; i++) {
-          var value = results![i];
+          var value = results[i];
           if (value != null) Future.sync(() => cleanUp(value as T));
         }
       }
-      results![results.length - ++errors] = e;
+      results[results.length - ++errors] = e;
       checkDone();
     };
     for (var future in futures) {
@@ -108,7 +108,7 @@ class MultiError extends Error {
     // Initialized to `new List(count)` when count is known.
     // Filled with values until the first error, then cleared
     // and filled with errors.
-    List<Object?>? results;
+    late List<Object?> results;
     void checkDone() {
       completed++;
       if (completed < count) return;
@@ -124,7 +124,7 @@ class MultiError extends Error {
       count++;
       future.then<Null>((v) {
         if (!hasError) {
-          results![i] = v;
+          results[i] = v;
         } else if (cleanUp != null) {
           Future.sync(() => cleanUp(v));
         }
@@ -132,15 +132,15 @@ class MultiError extends Error {
       }, onError: (e, s) {
         if (!hasError) {
           if (cleanUp != null) {
-            for (var i = 0; i < results!.length; i++) {
-              var result = results![i];
+            for (var i = 0; i < results.length; i++) {
+              var result = results[i];
               if (result != null) Future.sync(() => cleanUp(result as T));
             }
           }
           results = List<Object?>.filled(count, null);
           hasError = true;
         }
-        results![i] = e;
+        results[i] = e;
         checkDone();
       });
     }
@@ -154,13 +154,13 @@ class MultiError extends Error {
   String toString() {
     var buffer = StringBuffer();
     buffer.write('Multiple Errors:\n');
-    var linesPerError = _maxLines ~/ errors!.length;
+    var linesPerError = _maxLines ~/ errors.length;
     if (linesPerError < _minLinesPerError) {
       linesPerError = _minLinesPerError;
     }
 
-    for (var index = 0; index < errors!.length; index++) {
-      var error = errors![index];
+    for (var index = 0; index < errors.length; index++) {
+      var error = errors[index];
       if (error == null) continue;
       var errorString = error.toString();
       var end = 0;
