@@ -153,7 +153,7 @@ class Registry<T> {
   /// from other elements. Any object can be used as a tag, as long as
   /// it preserves equality when sent through a [SendPort].
   /// This makes [Capability] objects a good choice for tags.
-  Future<Capability?> add(T element, {Iterable? tags}) {
+  Future<Capability> add(T element, {Iterable? tags}) {
     var cache = _cache;
     if (cache.contains(element)) {
       return Future<Capability>.sync(() {
@@ -161,7 +161,7 @@ class Registry<T> {
             'Object already in registry: ${Error.safeToString(element)}');
       });
     }
-    var completer = Completer<Capability?>();
+    var completer = Completer<Capability>();
     var port = singleCompletePort(completer,
         callback: (List response) {
           assert(cache.isAdding(element));

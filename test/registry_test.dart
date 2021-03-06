@@ -240,7 +240,7 @@ void testRemove() {
       return registry.lookup().then((entries) {
         expect(entries, hasLength(1));
         expect(entries.first, same(object));
-        return registry.remove(object, removeCapability!);
+        return registry.remove(object, removeCapability);
       });
     }).then((removeSuccess) {
       expect(removeSuccess, isTrue);
@@ -369,7 +369,7 @@ void testCrossIsolate() {
           return registry.lookup(tags: ['a']).then((entries) {
             expect(entries, hasLength(1));
             expect(entries.first, same(object));
-            return registry.remove(entries.first, removeCapability!);
+            return registry.remove(entries.first, removeCapability);
           }).then<Null>((removeSuccess) {
             expect(removeSuccess, isTrue);
           });
@@ -401,7 +401,7 @@ void testTimeout() {
     var object = Object();
     return registry.add(object).then((rc) {
       regman.close();
-      return registry.remove(object, rc!).then<Null>((_) {
+      return registry.remove(object, rc).then<Null>((_) {
         fail('unreachable');
       }, onError: (e, s) {
         expect(e is TimeoutException, isTrue);
@@ -464,10 +464,10 @@ void testMultiRegistry() {
         // The object for registry2 is not identical the one for registry1.
         expect(!identical(l1, l2), isTrue);
         // Removing the registry1 object through registry2 doesn't work.
-        return registry2.remove(l1, removeCapability!);
+        return registry2.remove(l1, removeCapability);
       }).then((removeSuccess) {
         expect(removeSuccess, isFalse);
-        return registry2.remove(l2, removeCapability!);
+        return registry2.remove(l2, removeCapability);
       }).then((removeSuccess) {
         expect(removeSuccess, isTrue);
         return registry1.lookup();
@@ -499,7 +499,7 @@ void testObjectsAndTags() {
         }).then((entries) {
           expect(entries, hasLength(1));
           expect(entries.first, equals(object));
-          return registry2.remove(entries.first, removeCapability!);
+          return registry2.remove(entries.first, removeCapability);
         }).then((removeSuccess) {
           expect(removeSuccess, isTrue);
           return registry2.lookup();
