@@ -366,8 +366,9 @@ class SingleResponseChannel<R> {
   }
 
   void _cancelTimer() {
-    if (_timer != null) {
-      _timer!.cancel();
+    final timer = _timer;
+    if (timer != null) {
+      timer.cancel();
       _timer = null;
     }
   }
