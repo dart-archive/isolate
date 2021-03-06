@@ -40,7 +40,7 @@ class MultiError extends Error {
   ///
   /// The order of values is not preserved (if that is needed, use
   /// [wait]).
-  static Future<List<Object?>> waitUnordered<T>(Iterable<Future<T>?> futures,
+  static Future<List<Object?>> waitUnordered<T>(Iterable<Future<T>> futures,
       {void Function(T successResult)? cleanUp}) {
     late Completer<List<Object?>> completer;
     var count = 0;
@@ -82,7 +82,7 @@ class MultiError extends Error {
     };
     for (var future in futures) {
       count++;
-      future!.then<Null>(handleValue, onError: handleError);
+      future.then<Null>(handleValue, onError: handleError);
     }
     if (count == 0) return Future.value(List.filled(0, null));
     results = List.filled(count, null);
