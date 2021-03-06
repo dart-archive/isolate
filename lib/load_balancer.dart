@@ -144,7 +144,8 @@ class LoadBalancer implements Runner {
     for (var i = 0; i < _length; i++) {
       _queue[i].queueIndex = -1;
     }
-    _queue = const <Never>[];
+
+    _queue = List<_LoadBalancerEntry>.filled(0, _LoadBalancerEntry._sentinel);
     _length = 0;
     return stop;
   }
@@ -287,13 +288,15 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
       argument,
       Duration? timeout,
       FutureOr<R> Function()? onTimeout) {
-    return runner
-            ?.run<R, P>(function, argument,
-                timeout: timeout, onTimeout: onTimeout)
-            .whenComplete(() {
-          balancer._decreaseLoad(this, load);
-        }) ??
-        Future.value();
+    if (runner == null) {
+      throw StateError('run() called on sentinel');
+    }
+
+    return runner!
+        .run<R, P>(function, argument, timeout: timeout, onTimeout: onTimeout)
+        .whenComplete(() {
+      balancer._decreaseLoad(this, load);
+    });
   }
 
   Future close() => runner?.close() ?? Future.value();
