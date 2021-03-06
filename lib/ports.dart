@@ -376,7 +376,8 @@ class SingleResponseChannel<R> {
     // Executed as a port event.
     _receivePort.close();
     _cancelTimer();
-    if (_callback == null) {
+    final callback = _callback;
+    if (callback == null) {
       try {
         _completer.complete(v as R);
       } catch (e, s) {
@@ -391,7 +392,7 @@ class SingleResponseChannel<R> {
       // created in a different error zone, an error from the root zone
       // would become uncaught.
       _zone.run(() {
-        _completer.complete(Future<R?>.sync(() => _callback!(v)));
+        _completer.complete(Future<R?>.sync(() => callback(v)));
       });
     }
   }
