@@ -12,7 +12,7 @@ import 'package:isolate/isolate_runner.dart';
 import 'package:isolate/ports.dart';
 import 'package:isolate/runner.dart';
 
-Future<Future<Object> Function()> runHttpServer(
+Future<Future<Object?> Function()> runHttpServer(
     Runner runner, int port, HttpListener listener) async {
   var stopPort = await runner.run(_startHttpServer, [port, listener]);
 
@@ -53,7 +53,7 @@ class EchoHttpListener implements HttpListener {
   static final _id = Isolate.current.hashCode;
   final SendPort _counter;
 
-  StreamSubscription _subscription;
+  StreamSubscription? _subscription;
 
   EchoHttpListener(this._counter);
 
@@ -77,7 +77,7 @@ class EchoHttpListener implements HttpListener {
   @override
   Future stop() async {
     print('Stopping isolate $_id');
-    await _subscription.cancel();
+    await _subscription?.cancel();
     _subscription = null;
   }
 }
@@ -97,12 +97,13 @@ void main(List<String> args) async {
       await ServerSocket.bind(InternetAddress.anyIPv6, port, shared: true);
 
   port = socket.port;
-  var isolates = await Future.wait(
+  var isolates = await Future.wait<IsolateRunner>(
       Iterable.generate(5, (_) => IsolateRunner.spawn()), cleanUp: (isolate) {
     isolate.close();
   });
 
-  var stoppers = await Future.wait(isolates.map((IsolateRunner isolate) {
+  var stoppers = await Future.wait<Future<Object?> Function()>(
+      isolates.map((IsolateRunner isolate) {
     return runHttpServer(isolate, socket.port, listener);
   }), cleanUp: (shutdownServer) {
     shutdownServer();

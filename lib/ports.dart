@@ -47,11 +47,16 @@ import 'src/util.dart';
 ///     .sendPort
 /// ```
 SendPort singleCallbackPort<P>(void Function(P response) callback,
-    {Duration timeout, P timeoutValue}) {
+    {Duration? timeout, P? timeoutValue}) {
+  if (timeout != null && timeoutValue is! P) {
+    throw ArgumentError(
+        'When enabling a timeout, timeoutValue needs to be set too.');
+  }
+
   var responsePort = RawReceivePort();
   var zone = Zone.current;
   callback = zone.registerUnaryCallback(callback);
-  Timer timer;
+  Timer? timer;
   responsePort.handler = (response) {
     responsePort.close();
     timer?.cancel();
@@ -60,7 +65,7 @@ SendPort singleCallbackPort<P>(void Function(P response) callback,
   if (timeout != null) {
     timer = Timer(timeout, () {
       responsePort.close();
-      callback(timeoutValue);
+      callback(timeoutValue as P);
     });
   }
   return responsePort.sendPort;
@@ -93,16 +98,16 @@ SendPort singleCallbackPort<P>(void Function(P response) callback,
 ///
 /// Returns the `SendPort` expecting the single message.
 SendPort singleCompletePort<R, P>(Completer<R> completer,
-    {FutureOr<R> Function(P message) callback,
-    Duration timeout,
-    FutureOr<R> Function() onTimeout}) {
+    {FutureOr<R> Function(P message)? callback,
+    Duration? timeout,
+    FutureOr<R> Function()? onTimeout}) {
   if (callback == null && timeout == null) {
-    return singleCallbackPort<Object>((response) {
+    return singleCallbackPort<Object?>((response) {
       _castComplete<R>(completer, response);
     });
   }
   var responsePort = RawReceivePort();
-  Timer timer;
+  Timer? timer;
   if (callback == null) {
     responsePort.handler = (response) {
       responsePort.close();
@@ -160,12 +165,12 @@ SendPort singleCompletePort<R, P>(Completer<R> completer,
 /// use the [timeout] parameter, and not [Future.timeout] on the result.
 /// The `Future` method won't be able to close the underlying [ReceivePort].
 Future<R> singleResponseFuture<R>(void Function(SendPort responsePort) action,
-    {Duration timeout, R timeoutValue}) {
+    {Duration? timeout, R? timeoutValue}) {
   var completer = Completer<R>.sync();
   var responsePort = RawReceivePort();
-  Timer timer;
+  Timer? timer;
   var zone = Zone.current;
-  responsePort.handler = (Object response) {
+  responsePort.handler = (Object? response) {
     responsePort.close();
     timer?.cancel();
     zone.run(() {
@@ -196,7 +201,7 @@ Future<R> singleResponseFuture<R>(void Function(SendPort responsePort) action,
 /// The result of [future] is sent on [resultPort] in a form expected by
 /// either [receiveFutureResult], [completeFutureResult], or
 /// by the port of [singleResultFuture].
-void sendFutureResult(Future<Object> future, SendPort resultPort) {
+void sendFutureResult(Future<Object?> future, SendPort resultPort) {
   future.then((value) {
     resultPort.send(list1(value));
   }, onError: (error, stack) {
@@ -223,9 +228,9 @@ void sendFutureResult(Future<Object> future, SendPort resultPort) {
 /// If `onTimeout` is omitted, it defaults to throwing
 /// a [TimeoutException].
 Future<R> singleResultFuture<R>(void Function(SendPort responsePort) action,
-    {Duration timeout, FutureOr<R> Function() onTimeout}) {
+    {Duration? timeout, FutureOr<R> Function()? onTimeout}) {
   var completer = Completer<R>.sync();
-  var port = singleCompletePort<R, List<Object>>(completer,
+  var port = singleCompletePort<R, List<Object?>>(completer,
       callback: receiveFutureResult, timeout: timeout, onTimeout: onTimeout);
   try {
     action(port);
@@ -239,12 +244,12 @@ Future<R> singleResultFuture<R>(void Function(SendPort responsePort) action,
 /// Completes a completer with a message created by [sendFutureResult]
 ///
 /// The [response] must be a message on the format sent by [sendFutureResult].
-void completeFutureResult<R>(List<Object> response, Completer<R> completer) {
+void completeFutureResult<R>(List<Object?> response, Completer<R> completer) {
   if (response.length == 2) {
-    var error = RemoteError(response[0], response[1]);
+    var error = RemoteError(response[0] as String, response[1] as String);
     completer.completeError(error, error.stackTrace);
   } else {
-    R result = response[0];
+    var result = response[0] as R;
     completer.complete(result);
   }
 }
@@ -253,12 +258,12 @@ void completeFutureResult<R>(List<Object> response, Completer<R> completer) {
 /// result.
 ///
 /// The [response] must be a message on the format sent by [sendFutureResult].
-Future<R> receiveFutureResult<R>(List<Object> response) {
+Future<R> receiveFutureResult<R>(List<Object?> response) {
   if (response.length == 2) {
-    var error = RemoteError(response[0], response[1]);
+    var error = RemoteError(response[0] as String, response[1] as String);
     return Future.error(error, error.stackTrace);
   }
-  R result = response[0];
+  var result = response[0] as R;
   return Future<R>.value(result);
 }
 
@@ -270,8 +275,8 @@ class SingleResponseChannel<R> {
   final Zone _zone;
   final RawReceivePort _receivePort;
   final Completer<R> _completer;
-  final Function _callback;
-  Timer _timer;
+  final Function? _callback;
+  Timer? _timer;
 
   /// Creates a response channel.
   ///
@@ -289,11 +294,11 @@ class SingleResponseChannel<R> {
   /// If `onTimeout` is not provided either,
   /// the future is completed with `timeoutValue`, which defaults to `null`.
   SingleResponseChannel(
-      {FutureOr<R> Function(Null value) callback,
-      Duration timeout,
+      {FutureOr<R> Function(Never value)? callback,
+      Duration? timeout,
       bool throwOnTimeout = false,
-      FutureOr<R> Function() onTimeout,
-      R timeoutValue})
+      FutureOr<R> Function()? onTimeout,
+      R? timeoutValue})
       : _receivePort = RawReceivePort(),
         _completer = Completer<R>.sync(),
         _callback = callback,
@@ -328,20 +333,18 @@ class SingleResponseChannel<R> {
   /// If the channel hasn't received a value yet, or timed out, it is stopped
   /// (like by a timeout) and the [SingleResponseChannel.result]
   /// is completed with [result].
-  void interrupt([R result]) {
+  void interrupt([R? result]) {
     _receivePort.close();
     _cancelTimer();
     if (!_completer.isCompleted) {
       // Not in event tail position, so complete the sync completer later.
-      _completer.complete(Future.microtask(() => result));
+      _completer.complete(Future.microtask(() => result as R));
     }
   }
 
   void _cancelTimer() {
-    if (_timer != null) {
-      _timer.cancel();
-      _timer = null;
-    }
+    _timer?.cancel();
+    _timer = null;
   }
 
   void _handleResponse(v) {
@@ -363,7 +366,7 @@ class SingleResponseChannel<R> {
       // created in a different error zone, an error from the root zone
       // would become uncaught.
       _zone.run(() {
-        _completer.complete(Future.sync(() => _callback(v)));
+        _completer.complete(Future.sync(() => _callback!(v)));
       });
     }
   }
@@ -371,7 +374,7 @@ class SingleResponseChannel<R> {
 
 // Helper function that casts an object to a type and completes a
 // corresponding completer, or completes with the error if the cast fails.
-void _castComplete<R>(Completer<R> completer, Object value) {
+void _castComplete<R>(Completer<R> completer, Object? value) {
   try {
     completer.complete(value as R);
   } catch (error, stack) {

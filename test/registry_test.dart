@@ -120,8 +120,12 @@ void testLookup() {
 }
 
 void testAddLookup() {
+  late RegistryManager regman;
+
+  setUp(() => regman = RegistryManager());
+  tearDown(() => regman.close());
+
   test('Add-lookup-identical', () {
-    var regman = RegistryManager();
     var registry = regman.registry;
     var object = Object();
     return registry.add(object).then((_) {
@@ -129,41 +133,34 @@ void testAddLookup() {
     }).then((entries) {
       expect(entries, hasLength(1));
       expect(entries.first, same(object));
-    }).whenComplete(regman.close);
+    });
   });
 
-  test('Add-multiple-identical', () {
-    var regman = RegistryManager();
+  test('Add-multiple-identical', () async {
     var registry = regman.registry;
     var object1 = Object();
     var object2 = Object();
     var object3 = Object();
     var objects = [object1, object2, object3];
-    return Future.wait(objects.map(registry.add)).then((_) {
-      return registry.lookup();
-    }).then((entries) {
-      expect(entries, hasLength(3));
-      for (var entry in entries) {
-        expect(entry, isIn(objects));
-      }
-    }).whenComplete(regman.close);
+
+    for (final obj in objects) {
+      await registry.add(obj);
+    }
+
+    final entries = await registry.lookup();
+    expect(entries, hasLength(3));
+    expect(entries, everyElement(isIn(objects)));
   });
 
-  test('Add-twice', () {
-    var regman = RegistryManager();
+  test('Add-twice', () async {
     var registry = regman.registry;
     var object = Object();
-    return registry.add(object).then((_) {
-      return registry.add(object);
-    }).then((_) {
-      fail('Unreachable');
-    }, onError: (e, s) {
-      expect(e, isStateError);
-    }).whenComplete(regman.close);
+
+    await registry.add(object);
+    expect(() => registry.add(object), throwsStateError);
   });
 
   test('Add-lookup-add-lookup', () {
-    var regman = RegistryManager();
     var registry = regman.registry;
     var object = Object();
     var object2 = Object();
@@ -184,11 +181,10 @@ void testAddLookup() {
       } else {
         expect(entry1, same(object));
       }
-    }).whenComplete(regman.close);
+    });
   });
 
   test('lookup-add-lookup', () {
-    var regman = RegistryManager();
     var registry = regman.registry;
     var object = Object();
     return registry.lookup().then((entries) {
@@ -199,11 +195,10 @@ void testAddLookup() {
     }).then((entries) {
       expect(entries, hasLength(1));
       expect(entries.first, same(object));
-    }).whenComplete(regman.close);
+    });
   });
 
   test('Add-multiple-tags', () {
-    var regman = RegistryManager();
     var registry = regman.registry;
     var object1 = Object();
     var object2 = Object();
@@ -228,7 +223,7 @@ void testAddLookup() {
     }).then((entries) {
       expect(entries, hasLength(1));
       expect(entries.first, same(object2));
-    }).whenComplete(regman.close);
+    });
   });
 }
 
@@ -384,68 +379,53 @@ void testCrossIsolate() {
 }
 
 void testTimeout() {
+  final throwsTimeoutException = throwsA(isA<TimeoutException>());
+
   test('Timeout-add', () {
     var regman = RegistryManager(timeout: _ms * 500);
     var registry = regman.registry;
     regman.close();
-    return registry.add(Object()).then((_) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e is TimeoutException, isTrue);
-    });
+    return expectLater(registry.add(Object()), throwsTimeoutException);
   });
 
-  test('Timeout-remove', () {
+  test('Timeout-remove', () async {
     var regman = RegistryManager(timeout: _ms * 500);
     var registry = regman.registry;
     var object = Object();
-    return registry.add(object).then((rc) {
-      regman.close();
-      return registry.remove(object, rc).then((_) {
-        fail('unreachable');
-      }, onError: (e, s) {
-        expect(e is TimeoutException, isTrue);
-      });
-    });
+
+    final rc = await registry.add(object);
+    regman.close();
+
+    expect(() => registry.remove(object, rc), throwsTimeoutException);
   });
 
-  test('Timeout-addTags', () {
+  test('Timeout-addTags', () async {
     var regman = RegistryManager(timeout: _ms * 500);
     var registry = regman.registry;
     var object = Object();
-    return registry.add(object).then((rc) {
-      regman.close();
-      return registry.addTags([object], ['x']).then((_) {
-        fail('unreachable');
-      }, onError: (e, s) {
-        expect(e is TimeoutException, isTrue);
-      });
-    });
+
+    await registry.add(object);
+    regman.close();
+
+    expect(() => registry.addTags([object], ['x']), throwsTimeoutException);
   });
 
-  test('Timeout-removeTags', () {
+  test('Timeout-removeTags', () async {
     var regman = RegistryManager(timeout: _ms * 500);
     var registry = regman.registry;
     var object = Object();
-    return registry.add(object).then((rc) {
-      regman.close();
-      return registry.removeTags([object], ['x']).then((_) {
-        fail('unreachable');
-      }, onError: (e, s) {
-        expect(e is TimeoutException, isTrue);
-      });
-    });
+
+    await registry.add(object);
+    regman.close();
+    expect(() => registry.removeTags([object], ['x']), throwsTimeoutException);
   });
 
   test('Timeout-lookup', () {
     var regman = RegistryManager(timeout: _ms * 500);
     var registry = regman.registry;
     regman.close();
-    registry.lookup().then((_) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e is TimeoutException, isTrue);
-    });
+
+    return expectLater(registry.lookup(), throwsTimeoutException);
   });
 }
 

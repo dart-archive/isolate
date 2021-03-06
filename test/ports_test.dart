@@ -118,11 +118,7 @@ void testSingleCompletePort() {
       throw 89;
     });
     p.send(42);
-    return completer.future.then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e, 89);
-    });
+    return expectLater(completer.future, throwsA(89));
   });
 
   test('ValueCallbackThrowsFuture', () {
@@ -132,11 +128,7 @@ void testSingleCompletePort() {
       return Future.error(90);
     });
     p.send(42);
-    return completer.future.then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e, 90);
-    });
+    return expectLater(completer.future, throwsA(90));
   });
 
   test('FirstValue', () {
@@ -174,11 +166,7 @@ void testSingleCompletePort() {
   test('Timeout', () {
     var completer = Completer.sync();
     singleCompletePort(completer, timeout: _ms * 100);
-    return completer.future.then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e is TimeoutException, isTrue);
-    });
+    return expectLater(completer.future, throwsA(isA<TimeoutException>()));
   });
 
   test('TimeoutCallback', () {
@@ -193,11 +181,7 @@ void testSingleCompletePort() {
     var completer = Completer.sync();
     singleCompletePort(completer,
         timeout: _ms * 100, onTimeout: () => throw 91);
-    return completer.future.then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e, 91);
-    });
+    return expectLater(completer.future, throwsA(91));
   });
 
   test('TimeoutCallbackFuture', () {
@@ -213,14 +197,10 @@ void testSingleCompletePort() {
     var completer = Completer.sync();
     singleCompletePort(completer,
         timeout: _ms * 100, onTimeout: () => Future.error(92));
-    return completer.future.then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e, 92);
-    });
+    return expectLater(completer.future, throwsA(92));
   });
 
-  test('TimeoutCallbackSLow', () {
+  test('TimeoutCallbackSlow', () {
     var completer = Completer.sync();
     singleCompletePort(completer,
         timeout: _ms * 100,
@@ -235,11 +215,7 @@ void testSingleCompletePort() {
     singleCompletePort(completer,
         timeout: _ms * 100,
         onTimeout: () => Future.delayed(_ms * 500, () => throw 87));
-    return completer.future.then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e, 87);
-    });
+    return expectLater(completer.future, throwsA(87));
   });
 
   test('TimeoutFirst', () {
@@ -247,9 +223,7 @@ void testSingleCompletePort() {
     var p =
         singleCompletePort(completer, timeout: _ms * 100, onTimeout: () => 37);
     Timer(_ms * 500, () => p.send(42));
-    return completer.future.then((v) {
-      expect(v, 37);
-    });
+    return expectLater(completer.future, completion(37));
   });
 }
 
@@ -272,13 +246,9 @@ void testSingleResponseFuture() {
   });
 
   test('FutureError', () {
-    return singleResponseFuture((SendPort p) {
+    return expectLater(singleResponseFuture((SendPort p) {
       throw 93;
-    }).then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e, 93);
-    });
+    }), throwsA(93));
   });
 
   test('FutureTimeout', () {
@@ -319,45 +289,31 @@ void testSingleResultFuture() {
   });
 
   test('Error', () {
-    return singleResultFuture((SendPort p) {
+    return expectLater(singleResultFuture((SendPort p) {
       sendFutureResult(Future.error(94), p);
-    }).then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e is RemoteError, isTrue);
-    });
+    }), throwsA(isA<RemoteError>()));
   });
 
   test('ErrorFirst', () {
-    return singleResultFuture((SendPort p) {
+    return expectLater(singleResultFuture((SendPort p) {
       sendFutureResult(Future.error(95), p);
       sendFutureResult(Future.error(96), p);
-    }).then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e is RemoteError, isTrue);
-    });
+    }), throwsA(isA<RemoteError>()));
   });
 
   test('Error', () {
-    return singleResultFuture((SendPort p) {
+    return expectLater(singleResultFuture((SendPort p) {
       throw 93;
-    }).then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e is RemoteError, isTrue);
-    });
+    }), throwsA(isA<RemoteError>()));
   });
 
   test('Timeout', () {
-    return singleResultFuture((SendPort p) {
-      // no-op.
-    }, timeout: _ms * 100)
-        .then((v) {
-      fail('unreachable');
-    }, onError: (e, s) {
-      expect(e is TimeoutException, isTrue);
-    });
+    return expectLater(
+      singleResultFuture((SendPort p) {
+        // no-op.
+      }, timeout: _ms * 100),
+      throwsA(isA<TimeoutException>()),
+    );
   });
 
   test('TimeoutValue', () {
@@ -398,7 +354,7 @@ void testSingleResponseChannel() {
   });
 
   test('ValueCallback', () {
-    var channel = SingleResponseChannel(callback: (v) => 2 * v);
+    var channel = SingleResponseChannel(callback: (num v) => 2 * v);
     channel.port.send(42);
     return channel.result.then((v) {
       expect(v, 84);
@@ -408,15 +364,12 @@ void testSingleResponseChannel() {
   test('ErrorCallback', () {
     var channel = SingleResponseChannel(callback: (v) => throw 42);
     channel.port.send(37);
-    return channel.result.then((v) {
-      fail('unreachable');
-    }, onError: (v, s) {
-      expect(v, 42);
-    });
+    return expectLater(channel.result, throwsA(42));
   });
 
   test('AsyncValueCallback', () {
-    var channel = SingleResponseChannel(callback: (v) => Future.value(2 * v));
+    var channel =
+        SingleResponseChannel(callback: (num v) => Future.value(2 * v));
     channel.port.send(42);
     return channel.result.then((v) {
       expect(v, 84);
@@ -426,11 +379,8 @@ void testSingleResponseChannel() {
   test('AsyncErrorCallback', () {
     var channel = SingleResponseChannel(callback: (v) => Future.error(42));
     channel.port.send(37);
-    return channel.result.then((v) {
-      fail('unreachable');
-    }, onError: (v, s) {
-      expect(v, 42);
-    });
+
+    return expectLater(channel.result, throwsA(42));
   });
 
   test('Timeout', () {
@@ -443,11 +393,7 @@ void testSingleResponseChannel() {
   test('TimeoutThrow', () {
     var channel =
         SingleResponseChannel(timeout: _ms * 100, throwOnTimeout: true);
-    return channel.result.then((v) {
-      fail('unreachable');
-    }, onError: (v, s) {
-      expect(v is TimeoutException, isTrue);
-    });
+    return expectLater(channel.result, throwsA(isA<TimeoutException>()));
   });
 
   test('TimeoutThrowOnTimeoutAndValue', () {
@@ -456,11 +402,7 @@ void testSingleResponseChannel() {
         throwOnTimeout: true,
         onTimeout: () => 42,
         timeoutValue: 42);
-    return channel.result.then((v) {
-      fail('unreachable');
-    }, onError: (v, s) {
-      expect(v is TimeoutException, isTrue);
-    });
+    return expectLater(channel.result, throwsA(isA<TimeoutException>()));
   });
 
   test('TimeoutOnTimeout', () {
@@ -489,28 +431,19 @@ void testSingleResponseChannel() {
   test('TimeoutOnTimeoutError', () {
     var channel =
         SingleResponseChannel(timeout: _ms * 100, onTimeout: () => throw 42);
-    return channel.result.then((v) {
-      fail('unreachable');
-    }, onError: (v, s) {
-      expect(v, 42);
-    });
+
+    return expectLater(channel.result, throwsA(42));
   });
 
   test('TimeoutOnTimeoutAsync', () {
     var channel = SingleResponseChannel(
         timeout: _ms * 100, onTimeout: () => Future.value(42));
-    return channel.result.then((v) {
-      expect(v, 42);
-    });
+    return expectLater(channel.result, completion(42));
   });
 
   test('TimeoutOnTimeoutAsyncError', () {
     var channel = SingleResponseChannel(
         timeout: _ms * 100, onTimeout: () => Future.error(42));
-    return channel.result.then((v) {
-      fail('unreachable');
-    }, onError: (v, s) {
-      expect(v, 42);
-    });
+    return expectLater(channel.result, throwsA(42));
   });
 }

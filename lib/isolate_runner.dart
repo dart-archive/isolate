@@ -30,7 +30,7 @@ class IsolateRunner implements Runner {
   final SendPort _commandPort;
 
   /// Future returned by [onExit]. Set when [onExit] is first read.
-  Future<void> _onExitFuture;
+  Future<void>? _onExitFuture;
 
   /// Create an [IsolateRunner] wrapper for [isolate]
   ///
@@ -150,7 +150,7 @@ class IsolateRunner implements Runner {
   /// Calling pause more than once with the same `resumeCapability`
   /// has no further effect. Only a single call to [resume] is needed
   /// to resume the isolate.
-  void pause([Capability resumeCapability]) {
+  void pause([Capability? resumeCapability]) {
     resumeCapability ??= isolate.pauseCapability;
     isolate.pause(resumeCapability);
   }
@@ -162,9 +162,8 @@ class IsolateRunner implements Runner {
   ///
   /// Even if `pause` has been called more than once with the same
   /// `resumeCapability`, a single resume call with stop the pause.
-  void resume([Capability resumeCapability]) {
-    resumeCapability ??= isolate.pauseCapability;
-    isolate.resume(resumeCapability);
+  void resume([Capability? resumeCapability]) {
+    isolate.resume(resumeCapability ?? isolate.pauseCapability!);
   }
 
   /// Execute `function(argument)` in the isolate and return the result.
@@ -189,7 +188,7 @@ class IsolateRunner implements Runner {
   /// ```
   @override
   Future<R> run<R, P>(FutureOr<R> Function(P argument) function, P argument,
-      {Duration timeout, Function() onTimeout}) {
+      {Duration? timeout, FutureOr<R> Function()? onTimeout}) {
     return singleResultFuture<R>((SendPort port) {
       _commandPort.send(list4(_run, function, argument, port));
     }, timeout: timeout, onTimeout: onTimeout);
@@ -202,12 +201,12 @@ class IsolateRunner implements Runner {
   ///
   /// The stream closes when the isolate shuts down.
   Stream get errors {
-    StreamController controller;
-    RawReceivePort port;
+    late StreamController controller;
+    RawReceivePort? port;
     void handleError(message) {
       if (message == null) {
         // Isolate shutdown.
-        port.close();
+        port!.close();
         controller.close();
       } else {
         // Uncaught error.
@@ -222,13 +221,13 @@ class IsolateRunner implements Runner {
         sync: true,
         onListen: () {
           port = RawReceivePort(handleError);
-          isolate.addErrorListener(port.sendPort);
-          isolate.addOnExitListener(port.sendPort);
+          isolate.addErrorListener(port!.sendPort);
+          isolate.addOnExitListener(port!.sendPort);
         },
         onCancel: () {
-          isolate.removeErrorListener(port.sendPort);
-          isolate.removeOnExitListener(port.sendPort);
-          port.close();
+          isolate.removeErrorListener(port!.sendPort);
+          isolate.removeOnExitListener(port!.sendPort);
+          port!.close();
           port = null;
         });
     return controller.stream;
@@ -256,7 +255,7 @@ class IsolateRunner implements Runner {
         }
       });
     }
-    return _onExitFuture;
+    return _onExitFuture!;
   }
 }
 
@@ -285,11 +284,11 @@ class IsolateRunnerRemote {
     initPort.send(remote.commandPort);
   }
 
-  void _handleCommand(List<Object> command) {
+  void _handleCommand(List<Object?> command) {
     switch (command[0]) {
       case _shutdown:
         _commandPort.close();
-        (command[1] as SendPort)?.send(null);
+        (command[1] as SendPort?)?.send(null);
         break;
       case _run:
         var function = command[1] as Function;

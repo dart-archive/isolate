@@ -24,7 +24,7 @@ class LoadBalancer implements Runner {
   int _length;
 
   // Whether [stop] has been called.
-  Future<void> _stopFuture;
+  Future<void>? _stopFuture;
 
   /// Create a load balancer backed by the [Runner]s of [runners].
   LoadBalancer(Iterable<Runner> runners) : this._(_createEntries(runners));
@@ -74,7 +74,7 @@ class LoadBalancer implements Runner {
   /// the [onTimeout] function must be a constant function.
   @override
   Future<R> run<R, P>(FutureOr<R> Function(P argument) function, argument,
-      {Duration timeout, FutureOr<R> Function() onTimeout, int load = 100}) {
+      {Duration? timeout, FutureOr<R> Function()? onTimeout, int load = 100}) {
     RangeError.checkNotNegative(load, 'load');
     var entry = _first;
     _increaseLoad(entry, load);
@@ -97,7 +97,7 @@ class LoadBalancer implements Runner {
   /// as normal.
   List<Future<R>> runMultiple<R, P>(
       int count, FutureOr<R> Function(P argument) function, P argument,
-      {Duration timeout, FutureOr<R> Function() onTimeout, int load = 100}) {
+      {Duration? timeout, FutureOr<R> Function()? onTimeout, int load = 100}) {
     RangeError.checkValueInInterval(count, 1, _length, 'count');
     RangeError.checkNotNegative(load, 'load');
     if (count == 1) {
@@ -106,15 +106,14 @@ class LoadBalancer implements Runner {
           run(function, argument,
               load: load, timeout: timeout, onTimeout: onTimeout));
     }
-    var result = List<Future<R>>.filled(count, null);
+    List<Future<R>> result;
     if (count == _length) {
       // No need to change the order of entries in the queue.
-      for (var i = 0; i < count; i++) {
-        var entry = _queue[i];
-        entry.load += load;
-        result[i] =
-            entry.run(this, load, function, argument, timeout, onTimeout);
-      }
+      result = [
+        for (var i = 0; i < count; i++)
+          (_queue[i]..load += load)
+              .run(this, load, function, argument, timeout, onTimeout),
+      ];
     } else {
       // Remove the [count] least loaded services and run the
       // command on each, then add them back to the queue.
@@ -122,16 +121,14 @@ class LoadBalancer implements Runner {
       // isolate.
       // We can't assume that the first [count] entries in the
       // heap list are the least loaded.
-      var entries = List<_LoadBalancerEntry>.filled(count, null);
-      for (var i = 0; i < count; i++) {
-        entries[i] = _removeFirst();
-      }
+      final entries = [for (var i = 0; i < count; i++) _removeFirst()];
+      result = [];
       for (var i = 0; i < count; i++) {
         var entry = entries[i];
         entry.load += load;
         _add(entry);
-        result[i] =
-            entry.run(this, load, function, argument, timeout, onTimeout);
+        result
+            .add(entry.run(this, load, function, argument, timeout, onTimeout));
       }
     }
     return result;
@@ -139,17 +136,17 @@ class LoadBalancer implements Runner {
 
   @override
   Future<void> close() {
-    if (_stopFuture != null) return _stopFuture;
-    _stopFuture =
+    if (_stopFuture != null) return _stopFuture!;
+    final stop = _stopFuture =
         MultiError.waitUnordered(_queue.take(_length).map((e) => e.close()))
             .then(ignore);
     // Remove all entries.
     for (var i = 0; i < _length; i++) {
       _queue[i].queueIndex = -1;
     }
-    _queue = null;
+    _queue = const <Never>[];
     _length = 0;
-    return _stopFuture;
+    return stop;
   }
 
   /// Place [element] in heap at [index] or above.
@@ -207,7 +204,7 @@ class LoadBalancer implements Runner {
     entry.queueIndex = -1;
     _length--;
     var replacement = _queue[_length];
-    _queue[_length] = null;
+    _queue[_length] = _LoadBalancerEntry._sentinel;
     if (index < _length) {
       if (entry.compareTo(replacement) < 0) {
         _bubbleDown(replacement, index);
@@ -246,7 +243,8 @@ class LoadBalancer implements Runner {
   }
 
   void _grow() {
-    var newQueue = List<_LoadBalancerEntry>.filled(_length * 2, null);
+    var newQueue = List<_LoadBalancerEntry>.filled(
+        _length * 2, _LoadBalancerEntry._sentinel);
     newQueue.setRange(0, _length, _queue);
     _queue = newQueue;
   }
@@ -271,9 +269,13 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
   int queueIndex = -1;
 
   // The service used to send commands to the other isolate.
-  Runner runner;
+  //
+  // Null if this is a sentinel.
+  Runner? runner;
 
-  _LoadBalancerEntry(Runner runner) : runner = runner;
+  _LoadBalancerEntry(Runner? runner) : runner = runner;
+
+  static final _LoadBalancerEntry _sentinel = _LoadBalancerEntry(null);
 
   /// Whether the entry is still in the queue.
   bool get inQueue => queueIndex >= 0;
@@ -283,16 +285,18 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
       int load,
       FutureOr<R> Function(P argument) function,
       argument,
-      Duration timeout,
-      FutureOr<R> Function() onTimeout) {
+      Duration? timeout,
+      FutureOr<R> Function()? onTimeout) {
     return runner
-        .run<R, P>(function, argument, timeout: timeout, onTimeout: onTimeout)
-        .whenComplete(() {
-      balancer._decreaseLoad(this, load);
-    });
+            ?.run<R, P>(function, argument,
+                timeout: timeout, onTimeout: onTimeout)
+            .whenComplete(() {
+          balancer._decreaseLoad(this, load);
+        }) ??
+        Future.value();
   }
 
-  Future close() => runner.close();
+  Future close() => runner?.close() ?? Future.value();
 
   @override
   int compareTo(_LoadBalancerEntry other) => load - other.load;
