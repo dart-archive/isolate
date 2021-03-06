@@ -69,7 +69,7 @@ const int _findValue = 5;
 ///   var aWords = await dictionaryByFirstLetter.lookup(tags: [task.letter]);
 ///   ...
 /// }
-/// ```register
+/// ```
 ///
 /// A registry can be treated like a distributed multimap from tags to
 /// objects, if each tag is only used once. Example:
