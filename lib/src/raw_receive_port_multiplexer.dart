@@ -87,9 +87,9 @@ class RawReceivePortMultiplexer {
   }
 
   void _multiplexResponse(list) {
-    int? id = list[0];
+    final id = list[0] as int;
     var message = list[1];
-    var receivePort = _map[id!];
+    var receivePort = _map[id];
     // If the receive port is closed, messages are dropped, just as for
     // the normal ReceivePort.
     if (receivePort == null) return; // Port closed.
