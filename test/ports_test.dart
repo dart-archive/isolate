@@ -30,19 +30,29 @@ void testSingleCallbackPort() {
     });
   });
 
+  test('ValueWithoutTimeout non-nullable', () {
+    final completer = Completer<int>.sync();
+    final p = singleCallbackPortWithoutTimeout(completer.complete);
+    p.send(42);
+    return completer.future.then<Null>((int v) {
+      expect(v, 42);
+    });
+  });
+
+  test('ValueWithoutTimeout nullable', () {
+    final completer = Completer<int?>.sync();
+    final p = singleCallbackPortWithoutTimeout(completer.complete);
+    p.send(null);
+    return completer.future.then<Null>((int? v) {
+      expect(v, null);
+    });
+  });
+
   test('FirstValue', () {
     final completer = Completer.sync();
     final p = singleCallbackPort(completer.complete);
     p.send(42);
     p.send(37);
-    return completer.future.then<Null>((v) {
-      expect(v, 42);
-    });
-  });
-  test('Value', () {
-    final completer = Completer.sync();
-    final p = singleCallbackPort(completer.complete);
-    p.send(42);
     return completer.future.then<Null>((v) {
       expect(v, 42);
     });
@@ -73,6 +83,28 @@ void testSingleCallbackPort() {
     Timer(_ms * 500, () => p.send(42));
     return completer.future.then<Null>((v) {
       expect(v, 37);
+    });
+  });
+
+  /// invalid null is a compile time error
+  test('TimeoutFirst with valid null', () {
+    final completer = Completer.sync();
+    final p = singleCallbackPort(completer.complete,
+        timeout: _ms * 100, timeoutValue: null);
+    Timer(_ms * 500, () => p.send(42));
+    return completer.future.then<Null>((v) {
+      expect(v, null);
+    });
+  });
+
+  /// invalid null is a compile time error
+  test('TimeoutFirstWithTimeout with valid null', () {
+    final completer = Completer.sync();
+    final p = singleCallbackPortWithTimeout(completer.complete,
+        timeout: _ms * 100, timeoutValue: null);
+    Timer(_ms * 500, () => p.send(42));
+    return completer.future.then<Null>((v) {
+      expect(v, null);
     });
   });
 }
