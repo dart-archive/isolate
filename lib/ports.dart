@@ -323,7 +323,7 @@ class SingleResponseChannel<R> {
   final Zone _zone;
   final RawReceivePort _receivePort;
   final Completer<R?> _completer;
-  final Function? _callback;
+  final FutureOr<R> Function(dynamic)? _callback;
   Timer? _timer;
 
   /// Creates a response channel.
@@ -342,7 +342,7 @@ class SingleResponseChannel<R> {
   /// If `onTimeout` is not provided either,
   /// the future is completed with `timeoutValue`, which defaults to `null`.
   SingleResponseChannel(
-      {FutureOr<R> Function(Null value)? callback,
+      {FutureOr<R> Function(dynamic value)? callback,
       Duration? timeout,
       bool throwOnTimeout = false,
       FutureOr<R> Function()? onTimeout,

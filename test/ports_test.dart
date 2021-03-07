@@ -89,7 +89,7 @@ void testSingleCompletePort() {
 
   test('ValueCallback', () {
     final completer = Completer.sync();
-    final p = singleCompletePort(completer, callback: (dynamic v) {
+    final p = singleCompletePort(completer, callback: (v) {
       expect(42, v);
       return 87;
     });
@@ -101,7 +101,7 @@ void testSingleCompletePort() {
 
   test('ValueCallbackFuture', () {
     final completer = Completer.sync();
-    final p = singleCompletePort(completer, callback: (dynamic v) {
+    final p = singleCompletePort(completer, callback: (v) {
       expect(42, v);
       return Future.delayed(_ms * 500, () => 88);
     });
@@ -113,8 +113,7 @@ void testSingleCompletePort() {
 
   test('ValueCallbackThrows', () {
     final completer = Completer.sync();
-    final p =
-        singleCompletePort(completer, callback: (dynamic v) {
+    final p = singleCompletePort(completer, callback: (v) {
       expect(42, v);
       throw 89;
     });
@@ -128,7 +127,7 @@ void testSingleCompletePort() {
 
   test('ValueCallbackThrowsFuture', () {
     final completer = Completer.sync();
-    final p = singleCompletePort(completer, callback: (dynamic v) {
+    final p = singleCompletePort(completer, callback: (v) {
       expect(42, v);
       return Future.error(90);
     });

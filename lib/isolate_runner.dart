@@ -61,8 +61,8 @@ class IsolateRunner implements Runner {
     isolate.setErrorsFatal(false);
     var pingChannel = SingleResponseChannel();
     isolate.ping(pingChannel.port);
-    var commandPort = await channel.result;
-    var result = IsolateRunner(isolate, commandPort);
+    final commandPort = await channel.result as SendPort;
+    final result = IsolateRunner(isolate, commandPort);
     // Guarantees that setErrorsFatal has completed.
     await pingChannel.result;
     return result;
@@ -216,8 +216,8 @@ class IsolateRunner implements Runner {
         controller.close();
       } else {
         // Uncaught error.
-        String errorDescription = message[0];
-        String stackDescription = message[1];
+        final errorDescription = message[0] as String;
+        final stackDescription = message[1] as String;
         var error = RemoteError(errorDescription, stackDescription);
         controller.addError(error, error.stackTrace);
       }

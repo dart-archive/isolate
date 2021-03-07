@@ -22,8 +22,8 @@ Future<Future<Object?> Function()> runHttpServer(
 Future<Object?> _sendStop(SendPort stopPort) => singleResponseFutureWithoutTimeout(stopPort.send);
 
 Future<SendPort> _startHttpServer(List args) async {
-  int port = args[0];
-  HttpListener listener = args[1];
+  final port = args[0] as int;
+  final listener = args[1] as HttpListener;
 
   var server =
       await HttpServer.bind(InternetAddress.anyIPv6, port, shared: true);

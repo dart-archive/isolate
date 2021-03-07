@@ -35,7 +35,7 @@ Future<List<int>> parfib(int limit, int parallelity) {
     var fibs = List<Future<int>?>.filled(limit + 1, null);
     // Schedule all calls with exact load value and the heaviest task
     // assigned first.
-    void schedule(a, b, i) {
+    void schedule(int a, int b, int i) {
       if (i < limit) {
         schedule(a + b, a, i + 1);
       }

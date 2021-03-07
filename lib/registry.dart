@@ -165,8 +165,8 @@ class Registry<T> {
     var port = singleCompletePort(completer,
         callback: (List response) {
           assert(cache.isAdding(element));
-          int id = response[0];
-          Capability removeCapability = response[1];
+          final id = response[0] as int;
+          final removeCapability = response[1] as Capability;
           cache.register(id, element);
           return removeCapability;
         },
@@ -370,16 +370,28 @@ class RegistryManager {
         _add(command[1], command[2] as List?, command[3] as SendPort);
         return;
       case _removeValue:
-        _remove(command[1], command[2] as Capability, command[3] as SendPort);
+        _remove(
+          command[1] as int,
+          command[2] as Capability,
+          command[3] as SendPort,
+        );
         return;
       case _addTagsValue:
-        _addTags(command[1], command[2] as List, command[3] as SendPort);
+        _addTags(
+          command[1] as List<int>,
+          command[2] as List,
+          command[3] as SendPort,
+        );
         return;
       case _removeTagsValue:
-        _removeTags(command[1], command[2] as List, command[3] as SendPort);
+        _removeTags(
+          command[1] as List<int>,
+          command[2] as List,
+          command[3] as SendPort,
+        );
         return;
       case _getTagsValue:
-        _getTags(command[1], command[2] as SendPort);
+        _getTags(command[1] as int, command[2] as SendPort);
         return;
       case _findValue:
         _find(command[1] as List?, command[2] as int?, command[3] as SendPort);
