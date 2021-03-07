@@ -19,7 +19,8 @@ Future<Future<Object?> Function()> runHttpServer(
   return () => _sendStop(stopPort);
 }
 
-Future<Object?> _sendStop(SendPort stopPort) => singleResponseFutureWithoutTimeout(stopPort.send);
+Future<Object?> _sendStop(SendPort stopPort) =>
+    singleResponseFutureWithoutTimeout(stopPort.send);
 
 Future<SendPort> _startHttpServer(List args) async {
   final port = args[0] as int;
@@ -97,15 +98,15 @@ void main(List<String> args) async {
       await ServerSocket.bind(InternetAddress.anyIPv6, port, shared: true);
 
   port = socket.port;
-  var isolates =
-      await Future.wait(Iterable.generate(5, (_) => IsolateRunner.spawn()),
-          cleanUp: (dynamic isolate) {
+  var isolates = await Future.wait<IsolateRunner>(
+      Iterable.generate(5, (_) => IsolateRunner.spawn()), cleanUp: (isolate) {
     isolate.close();
   });
 
-  var stoppers = await Future.wait(isolates.map((IsolateRunner isolate) {
+  var stoppers =
+      await Future.wait<Function>(isolates.map((IsolateRunner isolate) {
     return runHttpServer(isolate, socket.port, listener);
-  }), cleanUp: (dynamic shutdownServer) {
+  }), cleanUp: (shutdownServer) {
     shutdownServer();
   });
 
