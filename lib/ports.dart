@@ -54,11 +54,20 @@ SendPort singleCallbackPort<P>(void Function(P? response) callback,
       timeout: timeout,
     );
 
-SendPort singleCallbackPortWithTimeout<P>(
-  void Function(P response) callback, {
-  required P timeoutValue,
-  Duration? timeout,
-}) {
+/// Same as [singleResponseFuture], but without [timeout],
+/// this allows us not to require a nullable value in the [callback]
+SendPort singleCallbackPortWithoutTimeout<P>(
+    void Function(P response) callback) {
+  return singleCallbackPortWithTimeout<P?>(
+    (response) => callback(response as P),
+    timeoutValue: null,
+  );
+}
+
+/// Same as [singleResponseFuture], but with required [timeoutValue],
+/// this allows us not to require a nullable value in the [callback]
+SendPort singleCallbackPortWithTimeout<P>(void Function(P response) callback,
+    {Duration? timeout, required P timeoutValue}) {
   var responsePort = RawReceivePort();
   var zone = Zone.current;
   callback = zone.registerUnaryCallback(callback);
@@ -68,12 +77,14 @@ SendPort singleCallbackPortWithTimeout<P>(
     timer?.cancel();
     zone.runUnary(callback, response as P);
   };
+
   if (timeout != null) {
     timer = Timer(timeout, () {
       responsePort.close();
       callback(timeoutValue);
     });
   }
+
   return responsePort.sendPort;
 }
 
@@ -103,13 +114,15 @@ SendPort singleCallbackPortWithTimeout<P>(
 /// completed in response to another event, either a port message or a timer.
 ///
 /// Returns the `SendPort` expecting the single message.
-SendPort singleCompletePort<R, P>(Completer<R> completer,
-    {FutureOr<R>? Function(P message)? callback,
-    Duration? timeout,
-    FutureOr<R> Function()? onTimeout}) {
+SendPort singleCompletePort<R, P>(
+  Completer<R> completer, {
+  FutureOr<R>? Function(P message)? callback,
+  Duration? timeout,
+  FutureOr<R> Function()? onTimeout,
+}) {
   if (callback == null && timeout == null) {
-    return singleCallbackPort<Object>((response) {
-      _castComplete<R?>(completer, response);
+    return singleCallbackPortWithoutTimeout<Object>((response) {
+      _castComplete<R>(completer, response);
     });
   }
   var responsePort = RawReceivePort();
@@ -181,8 +194,15 @@ Future<R?> singleResponseFuture<R>(
       timeoutValue: timeoutValue,
     );
 
-/// Same as [singleResponseFuture], but with required timeoutValue,
-/// this allows us to return non-nullable value
+/// Same as [singleResponseFuture], but without [timeout],
+/// this allows us not to require a nullable return value
+Future<R> singleResponseFutureWithoutTimeout<R>(
+        void Function(SendPort responsePort) action) =>
+    singleResponseFutureWithTimeout<R?>(action, timeoutValue: null)
+        .then((value) => value as R);
+
+/// Same as [singleResponseFuture], but with required [timeoutValue],
+/// this allows us not to require a nullable return value
 Future<R> singleResponseFutureWithTimeout<R>(
   void Function(SendPort responsePort) action, {
   Duration? timeout,

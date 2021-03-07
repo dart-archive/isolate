@@ -101,7 +101,7 @@ class IsolateRunner implements Runner {
   ///  .timeout(new Duration(...), onTimeout: () => print("No response"));
   /// ```
   Future<void> kill({Duration timeout = const Duration(seconds: 1)}) {
-    var onExit = singleResponseFuture(isolate.addOnExitListener);
+    final onExit = singleResponseFutureWithoutTimeout(isolate.addOnExitListener);
     if (Duration.zero == timeout) {
       isolate.kill(priority: Isolate.immediate);
       return onExit;

@@ -263,6 +263,28 @@ void testSingleResponseFuture() {
     });
   });
 
+  test('FutureValueWithoutTimeout', () {
+    return singleResponseFutureWithoutTimeout<int>((SendPort p) {
+      p.send(42);
+    }).then<Null>((v) {
+      expect(v, 42);
+    });
+  });
+
+  test('FutureValueWithoutTimeout valid null', () {
+    return singleResponseFutureWithoutTimeout<int?>((SendPort p) {
+      p.send(null);
+    }).then<Null>((v) {
+      expect(v, null);
+    });
+  });
+
+  test('FutureValueWithoutTimeout invalid null', () {
+    return expectLater(singleResponseFutureWithoutTimeout<int>((SendPort p) {
+      p.send(null);
+    }), throwsA(isA<TypeError>()));
+  });
+
   test('FutureValueFirst', () {
     return singleResponseFuture((SendPort p) {
       p.send(42);
@@ -300,7 +322,16 @@ void testSingleResponseFuture() {
     });
   });
 
-  test('FutureTimeoutValue with non-null result', () {
+  test('FutureTimeoutValue with valid null timeoutValue', () {
+    return singleResponseFutureWithTimeout((SendPort p) {
+      // no-op.
+    }, timeout: _ms * 100, timeoutValue: null)
+        .then<Null>((int? v) {
+      expect(v, null);
+    });
+  });
+
+  test('FutureTimeoutValue with non-null timeoutValue', () {
     return singleResponseFutureWithTimeout((SendPort p) {
       // no-op.
     }, timeout: _ms * 100, timeoutValue: 42)
