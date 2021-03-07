@@ -19,7 +19,7 @@ Future<Future<Object?> Function()> runHttpServer(
   return (() => _sendStop(stopPort));
 }
 
-Future<Object?> _sendStop(SendPort stopPort) => singleResponseFuture(stopPort.send);
+Future<Object?> _sendStop(SendPort stopPort) => singleResponseFutureWithoutTimeout(stopPort.send);
 
 Future<SendPort> _startHttpServer(List args) async {
   int port = args[0];
@@ -29,8 +29,8 @@ Future<SendPort> _startHttpServer(List args) async {
       await HttpServer.bind(InternetAddress.anyIPv6, port, shared: true);
   await listener.start(server);
 
-  return singleCallbackPort((SendPort? resultPort) {
-    sendFutureResult(Future.sync(listener.stop), resultPort!);
+  return singleCallbackPortWithoutTimeout((SendPort resultPort) {
+    sendFutureResult(Future.sync(listener.stop), resultPort);
   });
 }
 
