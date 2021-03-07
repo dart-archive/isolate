@@ -252,6 +252,28 @@ void testSingleCompletePort() {
       expect(v, 37);
     });
   });
+
+  test('TimeoutFirst with valid null', () {
+    final completer = Completer<int?>.sync();
+    final p = singleCompletePort(completer,
+        timeout: _ms * 100, onTimeout: () => null);
+    Timer(_ms * 500, () => p.send(42));
+    return expectLater(completer.future, completion(null));
+  });
+
+  test('TimeoutFirst with invalid null', () {
+    final completer = Completer<int>.sync();
+
+    /// example of incomplete generic parameters promotion.
+    /// same code with [singleCompletePort<int, dynamic>] is a compile time error
+    final p = singleCompletePort(
+      completer,
+      timeout: _ms * 100,
+      onTimeout: () => null,
+    );
+    Timer(_ms * 500, () => p.send(42));
+    return expectLater(completer.future, throwsA(isA<TypeError>()));
+  });
 }
 
 void testSingleResponseFuture() {

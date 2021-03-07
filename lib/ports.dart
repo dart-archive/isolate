@@ -116,7 +116,7 @@ SendPort singleCallbackPortWithTimeout<P>(void Function(P response) callback,
 /// Returns the `SendPort` expecting the single message.
 SendPort singleCompletePort<R, P>(
   Completer<R> completer, {
-  FutureOr<R>? Function(P message)? callback,
+  FutureOr<R> Function(P message)? callback,
   Duration? timeout,
   FutureOr<R> Function()? onTimeout,
 }) {
@@ -131,7 +131,7 @@ SendPort singleCompletePort<R, P>(
     responsePort.handler = (response) {
       responsePort.close();
       timer?.cancel();
-      _castComplete<R?>(completer, response);
+      _castComplete<R>(completer, response);
     };
   } else {
     var zone = Zone.current;
@@ -153,7 +153,13 @@ SendPort singleCompletePort<R, P>(
     timer = Timer(timeout, () {
       responsePort.close();
       if (onTimeout != null) {
-        completer.complete(Future.sync(onTimeout));
+        /// workaround for incomplete generic parameters promotion.
+        /// example is available in 'TimeoutFirst with invalid null' test
+        try {
+          completer.complete(Future.sync(onTimeout));
+        } catch (e, st) {
+          completer.completeError(e, st);
+        }
       } else {
         completer
             .completeError(TimeoutException('Future not completed', timeout));
