@@ -503,7 +503,7 @@ void testObjectsAndTags() {
         }).then((removeSuccess) {
           expect(removeSuccess, isTrue);
           return registry2.lookup();
-        }).then<Null>((entries) {
+        }).then<void>((entries) {
           expect(entries, isEmpty);
         });
       }).whenComplete(regman.close);
@@ -533,7 +533,7 @@ class Element {
   int get hashCode => id;
 
   @override
-  bool operator ==(Object? other) => other is Element && id == other.id;
+  bool operator ==(Object other) => other is Element && id == other.id;
 }
 
 void topLevelFunction() {}

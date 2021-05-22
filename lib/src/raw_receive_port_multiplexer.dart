@@ -49,7 +49,7 @@ class _MultiplexRawReceivePort implements RawReceivePort {
   SendPort get sendPort => _multiplexer._createSendPort(_id);
 
   void _invokeHandler(message) {
-    _handler!(message);
+    _handler?.call(message);
   }
 }
 

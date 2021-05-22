@@ -42,14 +42,15 @@ class MultiError extends Error {
   /// [wait]).
   static Future<List<Object?>> waitUnordered<T>(Iterable<Future<T>> futures,
       {void Function(T successResult)? cleanUp}) {
-    late Completer<List<Object?>> completer;
+    var completer = Completer<List<Object?>>();
     var count = 0;
     var errors = 0;
     var values = 0;
     // Initialized to `new List(count)` when count is known.
     // Filled up with values on the left, errors on the right.
     // Order is not preserved.
-    late List<Object?> results;
+    List<Object?> results = const <Never>[];
+
     void checkDone() {
       if (errors + values < count) return;
       if (errors == 0) {
@@ -60,7 +61,7 @@ class MultiError extends Error {
       completer.completeError(MultiError(errorList));
     }
 
-    var handleValue = (T v) {
+    void handleValue(T v) {
       // If this fails because [results] is null, there is a future
       // which breaks the Future API by completing immediately when
       // calling Future.then, probably by misusing a synchronous completer.
@@ -69,8 +70,9 @@ class MultiError extends Error {
         Future.sync(() => cleanUp(v));
       }
       checkDone();
-    };
-    var handleError = (e, s) {
+    }
+
+    void handleError(Object e, StackTrace s) {
       if (errors == 0 && cleanUp != null) {
         for (var i = 0; i < values; i++) {
           var value = results[i];
@@ -79,10 +81,11 @@ class MultiError extends Error {
       }
       results[results.length - ++errors] = e;
       checkDone();
-    };
+    }
+
     for (var future in futures) {
       count++;
-      future.then<Null>(handleValue, onError: handleError);
+      future.then<void>(handleValue, onError: handleError);
     }
     if (count == 0) return Future.value(List.filled(0, null));
     results = List.filled(count, null);
@@ -101,14 +104,15 @@ class MultiError extends Error {
   /// and `null` for non-errors.
   Future<List<Object?>> wait<T>(Iterable<Future<T>> futures,
       {void Function(T successResult)? cleanUp}) {
-    late Completer<List<Object?>> completer;
+    var completer = Completer<List<Object?>>();
     var count = 0;
     var hasError = false;
     var completed = 0;
     // Initialized to `new List(count)` when count is known.
     // Filled with values until the first error, then cleared
     // and filled with errors.
-    late List<Object?> results;
+    List<Object?> results = const <Never>[];
+
     void checkDone() {
       completed++;
       if (completed < count) return;

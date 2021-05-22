@@ -213,8 +213,8 @@ class Registry<T> {
   ///
   /// Fails if any of the elements are not in the registry.
   Future addTags(Iterable<T> elements, Iterable<Object?> tags) {
-    List<Object?> ids = elements.map(_getId).toList(growable: false);
-    return _addTags(ids as List<int>, tags);
+    var ids = elements.map(_getId).toList(growable: false);
+    return _addTags(ids, tags);
   }
 
   /// Remove tags from objects in the registry.
@@ -256,15 +256,15 @@ class Registry<T> {
     }
     if (tags != null) tags = tags.toList(growable: false);
     var completer = Completer<List<T>>();
-    var port = singleCompletePort(completer, callback: (List response) {
+    var port = singleCompletePort(completer, callback: (List<T> response) {
       // Response is even-length list of (id, element) pairs.
       var cache = _cache;
       var count = response.length ~/ 2;
       var result = List<T?>.filled(count, null);
       for (var i = 0; i < count; i++) {
         var id = response[i * 2] as int;
-        T? element = response[i * 2 + 1] as T;
-        element = cache.register(id, element) as T?;
+        var element = response[i * 2 + 1];
+        element = cache.register(id, element) as T;
         result[i] = element;
       }
       return result;
@@ -364,10 +364,10 @@ class RegistryManager {
   // Used as argument to putIfAbsent.
   static Set<int> _createSet() => HashSet<int>();
 
-  void _handleCommand(List command) {
+  void _handleCommand(List<dynamic> command) {
     switch (command[0]) {
       case _addValue:
-        _add(command[1], command[2] as List?, command[3] as SendPort);
+        _add(command[1], command[2] as List<Object?>?, command[3] as SendPort);
         return;
       case _removeValue:
         _remove(

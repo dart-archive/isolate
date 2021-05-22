@@ -61,7 +61,7 @@ class IsolateRunner implements Runner {
     isolate.setErrorsFatal(false);
     var pingChannel = SingleResponseChannel();
     isolate.ping(pingChannel.port);
-    final commandPort = await channel.result as SendPort;
+    var commandPort = await channel.result as SendPort;
     final result = IsolateRunner(isolate, commandPort);
     // Guarantees that setErrorsFatal has completed.
     await pingChannel.result;
@@ -165,10 +165,7 @@ class IsolateRunner implements Runner {
   /// `resumeCapability`, a single resume call with stop the pause.
   void resume([Capability? resumeCapability]) {
     resumeCapability ??= isolate.pauseCapability;
-
-    /// according to [Isolate.resume] docs
-    /// calling with this capability won't have any effect
-    resumeCapability ??= Capability();
+    if (resumeCapability == null) return;
     isolate.resume(resumeCapability);
   }
 
@@ -207,8 +204,8 @@ class IsolateRunner implements Runner {
   ///
   /// The stream closes when the isolate shuts down.
   Stream get errors {
-    late StreamController controller;
-    late RawReceivePort port;
+    var controller = StreamController.broadcast(sync: true);
+    var port = RawReceivePort();
     void handleError(message) {
       if (message == null) {
         // Isolate shutdown.
@@ -223,18 +220,17 @@ class IsolateRunner implements Runner {
       }
     }
 
-    controller = StreamController.broadcast(
-        sync: true,
-        onListen: () {
-          port = RawReceivePort(handleError);
-          isolate.addErrorListener(port.sendPort);
-          isolate.addOnExitListener(port.sendPort);
-        },
-        onCancel: () {
-          isolate.removeErrorListener(port.sendPort);
-          isolate.removeOnExitListener(port.sendPort);
-          port.close();
-        });
+    controller
+      ..onListen = () {
+        port.handler = handleError;
+        isolate.addErrorListener(port.sendPort);
+        isolate.addOnExitListener(port.sendPort);
+      }
+      ..onCancel = () {
+        isolate.removeErrorListener(port.sendPort);
+        isolate.removeOnExitListener(port.sendPort);
+        port.close();
+      };
     return controller.stream;
   }
 
@@ -253,7 +249,7 @@ class IsolateRunner implements Runner {
       var channel = SingleResponseChannel<void>();
       isolate.addOnExitListener(channel.port);
       _onExitFuture = channel.result.then(ignore);
-      ping().then<Null>((bool alive) {
+      ping().then<void>((bool alive) {
         if (!alive) {
           channel.interrupt();
           _onExitFuture = null;

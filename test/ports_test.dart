@@ -295,8 +295,8 @@ void testSingleCompletePort() {
   test('TimeoutFirst with invalid null', () {
     final completer = Completer<int>.sync();
 
-    /// example of incomplete generic parameters promotion.
-    /// same code with [singleCompletePort<int, dynamic>] is a compile time error
+    // Example of incomplete generic parameters promotion.
+    // Same code with [singleCompletePort<int, dynamic>] is a compile time error.
     final p = singleCompletePort(
       completer,
       timeout: _ms * 100,

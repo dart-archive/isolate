@@ -250,7 +250,7 @@ Future<R> singleResponseFutureWithTimeout<R>(
 /// either [receiveFutureResult], [completeFutureResult], or
 /// by the port of [singleResultFuture].
 void sendFutureResult(Future<Object?> future, SendPort resultPort) {
-  future.then<Null>((value) {
+  future.then<void>((value) {
     resultPort.send(list1(value));
   }, onError: (error, stack) {
     resultPort.send(list2('$error', '$stack'));

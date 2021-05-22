@@ -22,9 +22,9 @@ Future<Future<Object?> Function()> runHttpServer(
 Future<Object?> _sendStop(SendPort stopPort) =>
     singleResponseFutureWithoutTimeout(stopPort.send);
 
-Future<SendPort> _startHttpServer(List args) async {
-  final port = args[0] as int;
-  final listener = args[1] as HttpListener;
+Future<SendPort> _startHttpServer(List<Object?> args) async {
+  var port = args[0] as int;
+  var listener = args[1] as HttpListener;
 
   var server =
       await HttpServer.bind(InternetAddress.anyIPv6, port, shared: true);
@@ -55,7 +55,7 @@ class EchoHttpListener implements HttpListener {
   static final _id = Isolate.current.hashCode;
   final SendPort _counter;
 
-  late StreamSubscription _subscription;
+  StreamSubscription? _subscription;
 
   EchoHttpListener(this._counter);
 
@@ -79,7 +79,7 @@ class EchoHttpListener implements HttpListener {
   @override
   Future stop() async {
     print('Stopping isolate $_id');
-    await _subscription.cancel();
+    await _subscription?.cancel();
   }
 }
 

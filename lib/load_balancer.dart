@@ -7,10 +7,9 @@ library isolate.load_balancer;
 
 import 'dart:async' show Future, FutureOr;
 
-import 'package:collection/collection.dart';
-
 import 'runner.dart';
 import 'src/errors.dart';
+import 'src/priority_queue.dart';
 import 'src/util.dart';
 
 /// A pool of runners, ordered by load.
@@ -70,7 +69,7 @@ class LoadBalancer implements Runner {
       {Duration? timeout, FutureOr<R> Function()? onTimeout, int load = 100}) {
     RangeError.checkNotNegative(load, 'load');
     final entry = _queue.removeFirst();
-    entry.load += 1;
+    entry.load += load;
     _queue.add(entry);
     return entry.run(this, load, function, argument, timeout, onTimeout);
   }
@@ -100,15 +99,15 @@ class LoadBalancer implements Runner {
           run(function, argument,
               load: load, timeout: timeout, onTimeout: onTimeout));
     }
-    final placeholderFuture = Future<R>.value();
-    final result = List<FutureOr<R>>.filled(count, placeholderFuture);
+    final result = List<FutureOr<R>>.filled(count, _defaultFuture);
     if (count == length) {
       // No need to change the order of entries in the queue.
-      _queue.unorderedElements.mapIndexed((index, entry) {
+      for (var i = 0; i < _queue.unorderedElements.length; i++) {
+        var entry = _queue.unorderedElements.elementAt(i);
         entry.load += load;
-        result[index] =
+        result[i] =
             entry.run(this, load, function, argument, timeout, onTimeout);
-      }).forEach(ignore);
+      }
     } else {
       // Remove the [count] least loaded services and run the
       // command on each, then add them back to the queue.
@@ -132,14 +131,15 @@ class LoadBalancer implements Runner {
     return result;
   }
 
+  static final _defaultFuture = Future<Never>.error('')..catchError((_) {});
+
   @override
   Future<void> close() {
     var stopFuture = _stopFuture;
     if (stopFuture != null) return stopFuture;
-    _stopFuture = (stopFuture =
-        MultiError.waitUnordered(_queue.removeAll().map((e) => e.close()))
-            .then(ignore));
-    return stopFuture;
+    return _stopFuture ??= MultiError.waitUnordered(
+      _queue.removeAll().map((e) => e.close()),
+    ).then(ignore);
   }
 }
 
@@ -162,8 +162,7 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
     return runner
         .run<R, P>(function, argument, timeout: timeout, onTimeout: onTimeout)
         .whenComplete(() {
-      balancer._queue.remove(this);
-      load -= 1;
+      this.load -= load;
       balancer._queue.add(this);
     });
   }
