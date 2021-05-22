@@ -30,7 +30,7 @@ class IsolateRunner implements Runner {
   final SendPort _commandPort;
 
   /// Future returned by [onExit]. Set when [onExit] is first read.
-  Future<void> _onExitFuture;
+  Future<void>? _onExitFuture;
 
   /// Create an [IsolateRunner] wrapper for [isolate]
   ///
@@ -61,8 +61,8 @@ class IsolateRunner implements Runner {
     isolate.setErrorsFatal(false);
     var pingChannel = SingleResponseChannel();
     isolate.ping(pingChannel.port);
-    var commandPort = await channel.result;
-    var result = IsolateRunner(isolate, commandPort);
+    final commandPort = await channel.result as SendPort;
+    final result = IsolateRunner(isolate, commandPort);
     // Guarantees that setErrorsFatal has completed.
     await pingChannel.result;
     return result;
@@ -101,7 +101,8 @@ class IsolateRunner implements Runner {
   ///  .timeout(new Duration(...), onTimeout: () => print("No response"));
   /// ```
   Future<void> kill({Duration timeout = const Duration(seconds: 1)}) {
-    var onExit = singleResponseFuture(isolate.addOnExitListener);
+    final onExit =
+        singleResponseFutureWithoutTimeout(isolate.addOnExitListener);
     if (Duration.zero == timeout) {
       isolate.kill(priority: Isolate.immediate);
       return onExit;
@@ -131,7 +132,7 @@ class IsolateRunner implements Runner {
     var channel = SingleResponseChannel(
         callback: _kTrue, timeout: timeout, timeoutValue: false);
     isolate.ping(channel.port);
-    return channel.result;
+    return channel.result.then((result) => result ?? false);
   }
 
   static bool _kTrue(_) => true;
@@ -150,7 +151,7 @@ class IsolateRunner implements Runner {
   /// Calling pause more than once with the same `resumeCapability`
   /// has no further effect. Only a single call to [resume] is needed
   /// to resume the isolate.
-  void pause([Capability resumeCapability]) {
+  void pause([Capability? resumeCapability]) {
     resumeCapability ??= isolate.pauseCapability;
     isolate.pause(resumeCapability);
   }
@@ -162,8 +163,12 @@ class IsolateRunner implements Runner {
   ///
   /// Even if `pause` has been called more than once with the same
   /// `resumeCapability`, a single resume call with stop the pause.
-  void resume([Capability resumeCapability]) {
+  void resume([Capability? resumeCapability]) {
     resumeCapability ??= isolate.pauseCapability;
+
+    /// according to [Isolate.resume] docs
+    /// calling with this capability won't have any effect
+    resumeCapability ??= Capability();
     isolate.resume(resumeCapability);
   }
 
@@ -188,8 +193,8 @@ class IsolateRunner implements Runner {
   /// }
   /// ```
   @override
-  Future<R> run<R, P>(FutureOr<R> Function(P argument) function, P argument,
-      {Duration timeout, Function() onTimeout}) {
+  Future<R> run<R, P>(FutureOr<R>? Function(P argument) function, P argument,
+      {Duration? timeout, FutureOr<R> Function()? onTimeout}) {
     return singleResultFuture<R>((SendPort port) {
       _commandPort.send(list4(_run, function, argument, port));
     }, timeout: timeout, onTimeout: onTimeout);
@@ -202,8 +207,8 @@ class IsolateRunner implements Runner {
   ///
   /// The stream closes when the isolate shuts down.
   Stream get errors {
-    StreamController controller;
-    RawReceivePort port;
+    late StreamController controller;
+    late RawReceivePort port;
     void handleError(message) {
       if (message == null) {
         // Isolate shutdown.
@@ -211,8 +216,8 @@ class IsolateRunner implements Runner {
         controller.close();
       } else {
         // Uncaught error.
-        String errorDescription = message[0];
-        String stackDescription = message[1];
+        final errorDescription = message[0] as String;
+        final stackDescription = message[1] as String;
         var error = RemoteError(errorDescription, stackDescription);
         controller.addError(error, error.stackTrace);
       }
@@ -229,7 +234,6 @@ class IsolateRunner implements Runner {
           isolate.removeErrorListener(port.sendPort);
           isolate.removeOnExitListener(port.sendPort);
           port.close();
-          port = null;
         });
     return controller.stream;
   }
@@ -241,7 +245,7 @@ class IsolateRunner implements Runner {
   /// If the isolate has already stopped responding to commands,
   /// the returned future will be completed after one second,
   /// using [ping] to check if the isolate is still alive.
-  Future<void> get onExit {
+  Future<void>? get onExit {
     // TODO(lrn): Is there a way to see if an isolate is dead
     // so we can close the receive port for this future?
     // Using [ping] for now.
@@ -249,7 +253,7 @@ class IsolateRunner implements Runner {
       var channel = SingleResponseChannel<void>();
       isolate.addOnExitListener(channel.port);
       _onExitFuture = channel.result.then(ignore);
-      ping().then((bool alive) {
+      ping().then<Null>((bool alive) {
         if (!alive) {
           channel.interrupt();
           _onExitFuture = null;
@@ -269,6 +273,7 @@ class IsolateRunner implements Runner {
 /// instead of relying on [IsolateRunner.spawn].
 class IsolateRunnerRemote {
   final RawReceivePort _commandPort = RawReceivePort();
+
   IsolateRunnerRemote() {
     _commandPort.handler = _handleCommand;
   }
@@ -279,17 +284,17 @@ class IsolateRunnerRemote {
   /// manually, otherwise it's handled by [IsolateRunner.spawn].
   SendPort get commandPort => _commandPort.sendPort;
 
-  static void _create(Object data) {
+  static void _create(Object? data) {
     var initPort = data as SendPort;
     var remote = IsolateRunnerRemote();
     initPort.send(remote.commandPort);
   }
 
-  void _handleCommand(List<Object> command) {
+  void _handleCommand(List<Object?> command) {
     switch (command[0]) {
       case _shutdown:
         _commandPort.close();
-        (command[1] as SendPort)?.send(null);
+        (command[1] as SendPort?)?.send(null);
         break;
       case _run:
         var function = command[1] as Function;
