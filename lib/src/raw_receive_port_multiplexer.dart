@@ -31,12 +31,12 @@ import 'util.dart';
 class _MultiplexRawReceivePort implements RawReceivePort {
   final RawReceivePortMultiplexer _multiplexer;
   final int _id;
-  Function _handler;
+  Function? _handler;
 
   _MultiplexRawReceivePort(this._multiplexer, this._id, this._handler);
 
   @override
-  set handler(Function handler) {
+  set handler(Function? handler) {
     _handler = handler;
   }
 
@@ -49,7 +49,7 @@ class _MultiplexRawReceivePort implements RawReceivePort {
   SendPort get sendPort => _multiplexer._createSendPort(_id);
 
   void _invokeHandler(message) {
-    _handler(message);
+    _handler!(message);
   }
 }
 
@@ -75,7 +75,7 @@ class RawReceivePortMultiplexer {
     _port.handler = _multiplexResponse;
   }
 
-  RawReceivePort createRawReceivePort([void Function(dynamic) handler]) {
+  RawReceivePort createRawReceivePort([void Function(dynamic)? handler]) {
     var id = _nextId++;
     var result = _MultiplexRawReceivePort(this, id, handler);
     _map[id] = result;
@@ -87,7 +87,7 @@ class RawReceivePortMultiplexer {
   }
 
   void _multiplexResponse(list) {
-    int id = list[0];
+    final id = list[0] as int;
     var message = list[1];
     var receivePort = _map[id];
     // If the receive port is closed, messages are dropped, just as for

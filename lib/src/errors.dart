@@ -40,16 +40,16 @@ class MultiError extends Error {
   ///
   /// The order of values is not preserved (if that is needed, use
   /// [wait]).
-  static Future<List<Object>> waitUnordered<T>(Iterable<Future<T>> futures,
-      {void Function(T successResult) cleanUp}) {
-    Completer<List<Object>> completer;
+  static Future<List<Object?>> waitUnordered<T>(Iterable<Future<T>> futures,
+      {void Function(T successResult)? cleanUp}) {
+    late Completer<List<Object?>> completer;
     var count = 0;
     var errors = 0;
     var values = 0;
     // Initialized to `new List(count)` when count is known.
     // Filled up with values on the left, errors on the right.
     // Order is not preserved.
-    List<Object> results;
+    late List<Object?> results;
     void checkDone() {
       if (errors + values < count) return;
       if (errors == 0) {
@@ -74,7 +74,7 @@ class MultiError extends Error {
       if (errors == 0 && cleanUp != null) {
         for (var i = 0; i < values; i++) {
           var value = results[i];
-          if (value != null) Future.sync(() => cleanUp(value));
+          if (value != null) Future.sync(() => cleanUp(value as T));
         }
       }
       results[results.length - ++errors] = e;
@@ -82,7 +82,7 @@ class MultiError extends Error {
     };
     for (var future in futures) {
       count++;
-      future.then(handleValue, onError: handleError);
+      future.then<Null>(handleValue, onError: handleError);
     }
     if (count == 0) return Future.value(List.filled(0, null));
     results = List.filled(count, null);
@@ -99,16 +99,16 @@ class MultiError extends Error {
   /// The order of values is preserved, and if any error occurs, the
   /// [MultiError.errors] list will have errors in the corresponding slots,
   /// and `null` for non-errors.
-  Future<List<Object>> wait<T>(Iterable<Future<T>> futures,
-      {void Function(T successResult) cleanUp}) {
-    Completer<List<Object>> completer;
+  Future<List<Object?>> wait<T>(Iterable<Future<T>> futures,
+      {void Function(T successResult)? cleanUp}) {
+    late Completer<List<Object?>> completer;
     var count = 0;
     var hasError = false;
     var completed = 0;
     // Initialized to `new List(count)` when count is known.
     // Filled with values until the first error, then cleared
     // and filled with errors.
-    List<Object> results;
+    late List<Object?> results;
     void checkDone() {
       completed++;
       if (completed < count) return;
@@ -122,7 +122,7 @@ class MultiError extends Error {
     for (var future in futures) {
       var i = count;
       count++;
-      future.then((v) {
+      future.then<Null>((v) {
         if (!hasError) {
           results[i] = v;
         } else if (cleanUp != null) {
@@ -134,10 +134,10 @@ class MultiError extends Error {
           if (cleanUp != null) {
             for (var i = 0; i < results.length; i++) {
               var result = results[i];
-              if (result != null) Future.sync(() => cleanUp(result));
+              if (result != null) Future.sync(() => cleanUp(result as T));
             }
           }
-          results = List<Object>.filled(count, null);
+          results = List<Object?>.filled(count, null);
           hasError = true;
         }
         results[i] = e;
@@ -145,7 +145,7 @@ class MultiError extends Error {
       });
     }
     if (count == 0) return Future.value(List.filled(0, null));
-    results = List<T>.filled(count, null);
+    results = List<T?>.filled(count, null);
     completer = Completer();
     return completer.future;
   }

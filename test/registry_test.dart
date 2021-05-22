@@ -9,7 +9,6 @@ import 'dart:isolate';
 
 import 'package:isolate/isolate_runner.dart';
 import 'package:isolate/registry.dart';
-
 import 'package:test/test.dart';
 
 const _ms = Duration(milliseconds: 1);
@@ -44,7 +43,7 @@ void testLookup() {
       return registry.add(element, tags: [tag]);
     }).then((_) {
       return registry.lookup();
-    }).then((all) {
+    }).then<Null>((all) {
       expect(all.length, 10);
       expect(all.map((v) => v.id).toList()..sort(),
           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -60,7 +59,7 @@ void testLookup() {
       return registry.add(element, tags: [tag]);
     }).then((_) {
       return registry.lookup(tags: [Oddity.odd]);
-    }).then((all) {
+    }).then<Null>((all) {
       expect(all.length, 5);
       expect(all.map((v) => v.id).toList()..sort(), [1, 3, 5, 7, 9]);
     }).whenComplete(regman.close);
@@ -75,7 +74,7 @@ void testLookup() {
       return registry.add(element, tags: [tag]);
     }).then((_) {
       return registry.lookup(max: 5);
-    }).then((all) {
+    }).then<Null>((all) {
       expect(all.length, 5);
     }).whenComplete(regman.close);
   });
@@ -93,7 +92,7 @@ void testLookup() {
       return registry.add(element, tags: tags);
     }).then((_) {
       return registry.lookup(tags: [2, 3]);
-    }).then((all) {
+    }).then<Null>((all) {
       expect(all.length, 5);
       expect(all.map((v) => v.id).toList()..sort(), [0, 6, 12, 18, 24]);
     }).whenComplete(regman.close);
@@ -112,7 +111,7 @@ void testLookup() {
       return registry.add(element, tags: tags);
     }).then((_) {
       return registry.lookup(tags: [2, 3], max: 3);
-    }).then((all) {
+    }).then<Null>((all) {
       expect(all.length, 3);
       expect(all.every((v) => (v.id % 6) == 0), isTrue);
     }).whenComplete(regman.close);
@@ -126,7 +125,7 @@ void testAddLookup() {
     var object = Object();
     return registry.add(object).then((_) {
       return registry.lookup();
-    }).then((entries) {
+    }).then<Null>((entries) {
       expect(entries, hasLength(1));
       expect(entries.first, same(object));
     }).whenComplete(regman.close);
@@ -141,7 +140,7 @@ void testAddLookup() {
     var objects = [object1, object2, object3];
     return Future.wait(objects.map(registry.add)).then((_) {
       return registry.lookup();
-    }).then((entries) {
+    }).then<Null>((entries) {
       expect(entries, hasLength(3));
       for (var entry in entries) {
         expect(entry, isIn(objects));
@@ -155,7 +154,7 @@ void testAddLookup() {
     var object = Object();
     return registry.add(object).then((_) {
       return registry.add(object);
-    }).then((_) {
+    }).then<Null>((_) {
       fail('Unreachable');
     }, onError: (e, s) {
       expect(e, isStateError);
@@ -175,7 +174,7 @@ void testAddLookup() {
       return registry.add(object2);
     }).then((_) {
       return registry.lookup();
-    }).then((entries) {
+    }).then<Null>((entries) {
       expect(entries, hasLength(2));
       var entry1 = entries.first;
       var entry2 = entries.last;
@@ -196,7 +195,7 @@ void testAddLookup() {
       return registry.add(object);
     }).then((_) {
       return registry.lookup();
-    }).then((entries) {
+    }).then<Null>((entries) {
       expect(entries, hasLength(1));
       expect(entries.first, same(object));
     }).whenComplete(regman.close);
@@ -214,18 +213,18 @@ void testAddLookup() {
       return registry.add(object3, tags: [4, 5, 6, 7]);
     }).then((_) {
       return registry.lookup(tags: [3]);
-    }).then((entries) {
+    }).then<Null>((entries) {
       expect(entries, hasLength(2));
       expect(entries.first == object1 || entries.last == object1, isTrue);
       expect(entries.first == object2 || entries.last == object2, isTrue);
     }).then((_) {
       return registry.lookup(tags: [2]);
-    }).then((entries) {
+    }).then<Null>((entries) {
       expect(entries, hasLength(1));
       expect(entries.first, same(object2));
     }).then((_) {
       return registry.lookup(tags: [3, 6]);
-    }).then((entries) {
+    }).then<Null>((entries) {
       expect(entries, hasLength(1));
       expect(entries.first, same(object2));
     }).whenComplete(regman.close);
@@ -246,7 +245,7 @@ void testRemove() {
     }).then((removeSuccess) {
       expect(removeSuccess, isTrue);
       return registry.lookup();
-    }).then((entries) {
+    }).then<Null>((entries) {
       expect(entries, isEmpty);
     }).whenComplete(regman.close);
   });
@@ -261,7 +260,7 @@ void testRemove() {
         expect(entries.first, same(object));
         return registry.remove(object, Capability());
       });
-    }).then((removeSuccess) {
+    }).then<Null>((removeSuccess) {
       expect(removeSuccess, isFalse);
     }).whenComplete(regman.close);
   });
@@ -285,7 +284,7 @@ void testAddRemoveTags() {
       return registry.removeTags([object], ['x']);
     }).then((_) {
       return registry.lookup(tags: ['x']);
-    }).then((entries) {
+    }).then<Null>((entries) {
       expect(entries, isEmpty);
     }).whenComplete(regman.close);
   });
@@ -349,6 +348,7 @@ void testAddRemoveTags() {
 }
 
 var _regmen = {};
+
 Registry createRegMan(id) {
   var regman = RegistryManager();
   _regmen[id] = regman;
@@ -370,7 +370,7 @@ void testCrossIsolate() {
             expect(entries, hasLength(1));
             expect(entries.first, same(object));
             return registry.remove(entries.first, removeCapability);
-          }).then((removeSuccess) {
+          }).then<Null>((removeSuccess) {
             expect(removeSuccess, isTrue);
           });
         });
@@ -388,7 +388,7 @@ void testTimeout() {
     var regman = RegistryManager(timeout: _ms * 500);
     var registry = regman.registry;
     regman.close();
-    return registry.add(Object()).then((_) {
+    return registry.add(Object()).then<Null>((_) {
       fail('unreachable');
     }, onError: (e, s) {
       expect(e is TimeoutException, isTrue);
@@ -401,7 +401,7 @@ void testTimeout() {
     var object = Object();
     return registry.add(object).then((rc) {
       regman.close();
-      return registry.remove(object, rc).then((_) {
+      return registry.remove(object, rc).then<Null>((_) {
         fail('unreachable');
       }, onError: (e, s) {
         expect(e is TimeoutException, isTrue);
@@ -415,7 +415,7 @@ void testTimeout() {
     var object = Object();
     return registry.add(object).then((rc) {
       regman.close();
-      return registry.addTags([object], ['x']).then((_) {
+      return registry.addTags([object], ['x']).then<Null>((_) {
         fail('unreachable');
       }, onError: (e, s) {
         expect(e is TimeoutException, isTrue);
@@ -429,7 +429,7 @@ void testTimeout() {
     var object = Object();
     return registry.add(object).then((rc) {
       regman.close();
-      return registry.removeTags([object], ['x']).then((_) {
+      return registry.removeTags([object], ['x']).then<Null>((_) {
         fail('unreachable');
       }, onError: (e, s) {
         expect(e is TimeoutException, isTrue);
@@ -441,7 +441,7 @@ void testTimeout() {
     var regman = RegistryManager(timeout: _ms * 500);
     var registry = regman.registry;
     regman.close();
-    registry.lookup().then((_) {
+    registry.lookup().then<Null>((_) {
       fail('unreachable');
     }, onError: (e, s) {
       expect(e is TimeoutException, isTrue);
@@ -471,7 +471,7 @@ void testMultiRegistry() {
       }).then((removeSuccess) {
         expect(removeSuccess, isTrue);
         return registry1.lookup();
-      }).then((entries) {
+      }).then<Null>((entries) {
         expect(entries, isEmpty);
       });
     }).whenComplete(regman.close);
@@ -503,7 +503,7 @@ void testObjectsAndTags() {
         }).then((removeSuccess) {
           expect(removeSuccess, isTrue);
           return registry2.lookup();
-        }).then((entries) {
+        }).then<Null>((entries) {
           expect(entries, isEmpty);
         });
       }).whenComplete(regman.close);
@@ -526,11 +526,14 @@ void testObjectsAndTags() {
 
 class Element {
   final int id;
+
   Element(this.id);
+
   @override
   int get hashCode => id;
+
   @override
-  bool operator ==(Object other) => other is Element && id == other.id;
+  bool operator ==(Object? other) => other is Element && id == other.id;
 }
 
 void topLevelFunction() {}
