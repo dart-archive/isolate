@@ -4,16 +4,7 @@
 
 import 'dart:collection';
 
-/// A [Comparator] that asserts that its first argument is comparable.
-///
-/// The function behaves just like [List.sort]'s
-/// default comparison function. It is entirely dynamic in its testing.
-///
-/// Should be used when optimistically comparing object that are assumed
-/// to be comparable.
-/// If the elements are known to be comparable, use [compareComparable].
-int defaultCompare(Object? value1, Object? value2) =>
-    (value1 as Comparable<Object?>).compareTo(value2);
+import 'util.dart';
 
 /// A priority queue is a priority based work-list of elements.
 ///
@@ -470,7 +461,9 @@ class HeapPriorityQueue<E> implements PriorityQueue<E> {
 /// Implementation of [HeapPriorityQueue.unorderedElements].
 class _UnorderedElementsIterable<E> extends Iterable<E> {
   final HeapPriorityQueue<E> _queue;
+
   _UnorderedElementsIterable(this._queue);
+
   @override
   Iterator<E> get iterator => _UnorderedElementsIterator<E>(_queue);
 }
