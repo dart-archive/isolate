@@ -22,8 +22,8 @@ void main() {
 
 void testSingleCallbackPort() {
   test('Value', () {
-    final completer = Completer.sync();
-    final p = singleCallbackPort(completer.complete);
+    var completer = Completer.sync();
+    var p = singleCallbackPort(completer.complete);
     p.send(42);
     return completer.future.then<Null>((v) {
       expect(v, 42);
@@ -31,8 +31,8 @@ void testSingleCallbackPort() {
   });
 
   test('ValueWithoutTimeout non-nullable', () {
-    final completer = Completer<int>.sync();
-    final p = singleCallbackPortWithoutTimeout(completer.complete);
+    var completer = Completer<int>.sync();
+    var p = singleCallbackPortWithoutTimeout(completer.complete);
     p.send(42);
     return completer.future.then<Null>((int v) {
       expect(v, 42);
@@ -40,8 +40,8 @@ void testSingleCallbackPort() {
   });
 
   test('ValueWithoutTimeout nullable', () {
-    final completer = Completer<int?>.sync();
-    final p = singleCallbackPortWithoutTimeout(completer.complete);
+    var completer = Completer<int?>.sync();
+    var p = singleCallbackPortWithoutTimeout(completer.complete);
     p.send(null);
     return completer.future.then<Null>((int? v) {
       expect(v, null);
@@ -49,8 +49,8 @@ void testSingleCallbackPort() {
   });
 
   test('FirstValue', () {
-    final completer = Completer.sync();
-    final p = singleCallbackPort(completer.complete);
+    var completer = Completer.sync();
+    var p = singleCallbackPort(completer.complete);
     p.send(42);
     p.send(37);
     return completer.future.then<Null>((v) {
@@ -59,8 +59,8 @@ void testSingleCallbackPort() {
   });
 
   test('ValueBeforeTimeout', () {
-    final completer = Completer.sync();
-    final p = singleCallbackPort(completer.complete, timeout: _ms * 500);
+    var completer = Completer.sync();
+    var p = singleCallbackPort(completer.complete, timeout: _ms * 500);
     p.send(42);
     return completer.future.then<Null>((v) {
       expect(v, 42);
@@ -68,7 +68,7 @@ void testSingleCallbackPort() {
   });
 
   test('Timeout', () {
-    final completer = Completer.sync();
+    var completer = Completer.sync();
     singleCallbackPort(completer.complete,
         timeout: _ms * 100, timeoutValue: 37);
     return completer.future.then<Null>((v) {
@@ -77,8 +77,8 @@ void testSingleCallbackPort() {
   });
 
   test('TimeoutFirst', () {
-    final completer = Completer.sync();
-    final p = singleCallbackPort(completer.complete,
+    var completer = Completer.sync();
+    var p = singleCallbackPort(completer.complete,
         timeout: _ms * 100, timeoutValue: 37);
     Timer(_ms * 500, () => p.send(42));
     return completer.future.then<Null>((v) {
@@ -88,8 +88,8 @@ void testSingleCallbackPort() {
 
   /// invalid null is a compile time error
   test('TimeoutFirst with valid null', () {
-    final completer = Completer.sync();
-    final p = singleCallbackPort(completer.complete,
+    var completer = Completer.sync();
+    var p = singleCallbackPort(completer.complete,
         timeout: _ms * 100, timeoutValue: null);
     Timer(_ms * 500, () => p.send(42));
     return completer.future.then<Null>((v) {
@@ -99,8 +99,8 @@ void testSingleCallbackPort() {
 
   /// invalid null is a compile time error
   test('TimeoutFirstWithTimeout with valid null', () {
-    final completer = Completer.sync();
-    final p = singleCallbackPortWithTimeout(completer.complete,
+    var completer = Completer.sync();
+    var p = singleCallbackPortWithTimeout(completer.complete,
         timeout: _ms * 100, timeoutValue: null);
     Timer(_ms * 500, () => p.send(42));
     return completer.future.then<Null>((v) {
@@ -111,8 +111,8 @@ void testSingleCallbackPort() {
 
 void testSingleCompletePort() {
   test('Value', () {
-    final completer = Completer.sync();
-    final p = singleCompletePort(completer);
+    var completer = Completer.sync();
+    var p = singleCompletePort(completer);
     p.send(42);
     return completer.future.then<Null>((v) {
       expect(v, 42);
@@ -120,8 +120,8 @@ void testSingleCompletePort() {
   });
 
   test('ValueCallback', () {
-    final completer = Completer.sync();
-    final p = singleCompletePort(completer, callback: (v) {
+    var completer = Completer.sync();
+    var p = singleCompletePort(completer, callback: (v) {
       expect(42, v);
       return 87;
     });
@@ -132,8 +132,8 @@ void testSingleCompletePort() {
   });
 
   test('ValueCallbackFuture', () {
-    final completer = Completer.sync();
-    final p = singleCompletePort(completer, callback: (v) {
+    var completer = Completer.sync();
+    var p = singleCompletePort(completer, callback: (v) {
       expect(42, v);
       return Future.delayed(_ms * 500, () => 88);
     });
@@ -144,8 +144,8 @@ void testSingleCompletePort() {
   });
 
   test('ValueCallbackThrows', () {
-    final completer = Completer.sync();
-    final p = singleCompletePort(completer, callback: (v) {
+    var completer = Completer.sync();
+    var p = singleCompletePort(completer, callback: (v) {
       expect(42, v);
       throw 89;
     });
@@ -158,8 +158,8 @@ void testSingleCompletePort() {
   });
 
   test('ValueCallbackThrowsFuture', () {
-    final completer = Completer.sync();
-    final p = singleCompletePort(completer, callback: (v) {
+    var completer = Completer.sync();
+    var p = singleCompletePort(completer, callback: (v) {
       expect(42, v);
       return Future.error(90);
     });
@@ -172,8 +172,8 @@ void testSingleCompletePort() {
   });
 
   test('FirstValue', () {
-    final completer = Completer.sync();
-    final p = singleCompletePort(completer);
+    var completer = Completer.sync();
+    var p = singleCompletePort(completer);
     p.send(42);
     p.send(37);
     return completer.future.then<Null>((v) {
@@ -182,8 +182,8 @@ void testSingleCompletePort() {
   });
 
   test('FirstValueCallback', () {
-    final completer = Completer.sync();
-    final p = singleCompletePort(completer, callback: (v) {
+    var completer = Completer.sync();
+    var p = singleCompletePort(completer, callback: (v) {
       expect(v, 42);
       return 87;
     });
@@ -195,8 +195,8 @@ void testSingleCompletePort() {
   });
 
   test('ValueBeforeTimeout', () {
-    final completer = Completer.sync();
-    final p = singleCompletePort(completer, timeout: _ms * 500);
+    var completer = Completer.sync();
+    var p = singleCompletePort(completer, timeout: _ms * 500);
     p.send(42);
     return completer.future.then<Null>((v) {
       expect(v, 42);
@@ -204,7 +204,7 @@ void testSingleCompletePort() {
   });
 
   test('Timeout', () {
-    final completer = Completer.sync();
+    var completer = Completer.sync();
     singleCompletePort(completer, timeout: _ms * 100);
     return completer.future.then<Null>((v) {
       fail('unreachable');
@@ -214,7 +214,7 @@ void testSingleCompletePort() {
   });
 
   test('TimeoutCallback', () {
-    final completer = Completer.sync();
+    var completer = Completer.sync();
     singleCompletePort(completer, timeout: _ms * 100, onTimeout: () => 87);
     return completer.future.then<Null>((v) {
       expect(v, 87);
@@ -222,7 +222,7 @@ void testSingleCompletePort() {
   });
 
   test('TimeoutCallbackThrows', () {
-    final completer = Completer.sync();
+    var completer = Completer.sync();
     singleCompletePort(completer,
         timeout: _ms * 100, onTimeout: () => throw 91);
     return completer.future.then<Null>((v) {
@@ -233,7 +233,7 @@ void testSingleCompletePort() {
   });
 
   test('TimeoutCallbackFuture', () {
-    final completer = Completer.sync();
+    var completer = Completer.sync();
     singleCompletePort(completer,
         timeout: _ms * 100, onTimeout: () => Future.value(87));
     return completer.future.then<Null>((v) {
@@ -242,7 +242,7 @@ void testSingleCompletePort() {
   });
 
   test('TimeoutCallbackThrowsFuture', () {
-    final completer = Completer.sync();
+    var completer = Completer.sync();
     singleCompletePort(completer,
         timeout: _ms * 100, onTimeout: () => Future.error(92));
     return completer.future.then<Null>((v) {
@@ -253,7 +253,7 @@ void testSingleCompletePort() {
   });
 
   test('TimeoutCallbackSLow', () {
-    final completer = Completer.sync();
+    var completer = Completer.sync();
     singleCompletePort(completer,
         timeout: _ms * 100,
         onTimeout: () => Future.delayed(_ms * 500, () => 87));
@@ -263,7 +263,7 @@ void testSingleCompletePort() {
   });
 
   test('TimeoutCallbackThrowsSlow', () {
-    final completer = Completer.sync();
+    var completer = Completer.sync();
     singleCompletePort(completer,
         timeout: _ms * 100,
         onTimeout: () => Future.delayed(_ms * 500, () => throw 87));
@@ -275,8 +275,8 @@ void testSingleCompletePort() {
   });
 
   test('TimeoutFirst', () {
-    final completer = Completer.sync();
-    final p =
+    var completer = Completer.sync();
+    var p =
         singleCompletePort(completer, timeout: _ms * 100, onTimeout: () => 37);
     Timer(_ms * 500, () => p.send(42));
     return completer.future.then<Null>((v) {
@@ -285,19 +285,19 @@ void testSingleCompletePort() {
   });
 
   test('TimeoutFirst with valid null', () {
-    final completer = Completer<int?>.sync();
-    final p = singleCompletePort(completer,
+    var completer = Completer<int?>.sync();
+    var p = singleCompletePort(completer,
         timeout: _ms * 100, onTimeout: () => null);
     Timer(_ms * 500, () => p.send(42));
     return expectLater(completer.future, completion(null));
   });
 
   test('TimeoutFirst with invalid null', () {
-    final completer = Completer<int>.sync();
+    var completer = Completer<int>.sync();
 
     // Example of incomplete generic parameters promotion.
     // Same code with [singleCompletePort<int, dynamic>] is a compile time error.
-    final p = singleCompletePort(
+    var p = singleCompletePort(
       completer,
       timeout: _ms * 100,
       onTimeout: () => null,

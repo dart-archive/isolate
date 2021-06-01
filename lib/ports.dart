@@ -374,7 +374,6 @@ class SingleResponseChannel<R> {
   SendPort get port => _receivePort.sendPort;
 
   /// Future completed by the first value sent to [port].
-  /// Null is only possible with null timeoutValue and
   Future<R?> get result => _completer.future;
 
   /// If the channel hasn't completed yet, interrupt it and complete the result.
