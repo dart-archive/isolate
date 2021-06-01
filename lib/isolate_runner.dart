@@ -62,7 +62,7 @@ class IsolateRunner implements Runner {
     var pingChannel = SingleResponseChannel();
     isolate.ping(pingChannel.port);
     var commandPort = await channel.result as SendPort;
-    final result = IsolateRunner(isolate, commandPort);
+    var result = IsolateRunner(isolate, commandPort);
     // Guarantees that setErrorsFatal has completed.
     await pingChannel.result;
     return result;
