@@ -127,7 +127,7 @@ class MultiError extends Error {
     for (var future in futures) {
       var i = count;
       count++;
-      future.then<Null>((v) {
+      future.then<void>((v) {
         if (!hasError) {
           results[i] = v;
         } else if (cleanUp != null) {

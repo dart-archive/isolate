@@ -68,7 +68,7 @@ class LoadBalancer implements Runner {
   Future<R> run<R, P>(FutureOr<R> Function(P argument) function, P argument,
       {Duration? timeout, FutureOr<R> Function()? onTimeout, int load = 100}) {
     RangeError.checkNotNegative(load, 'load');
-    final entry = _queue.removeFirst();
+    var entry = _queue.removeFirst();
     entry.load += load;
     _queue.add(entry);
     return entry.run(this, load, function, argument, timeout, onTimeout);
@@ -99,7 +99,7 @@ class LoadBalancer implements Runner {
           run(function, argument,
               load: load, timeout: timeout, onTimeout: onTimeout));
     }
-    final result = List<FutureOr<R>>.filled(count, _defaultFuture);
+    var result = List<FutureOr<R>>.filled(count, _defaultFuture);
     if (count == length) {
       // No need to change the order of entries in the queue.
       for (var i = 0; i < _queue.unorderedElements.length; i++) {
@@ -150,7 +150,7 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
   // The service used to send commands to the other isolate.
   Runner runner;
 
-  _LoadBalancerEntry(Runner runner) : runner = runner;
+  _LoadBalancerEntry(this.runner);
 
   Future<R> run<R, P>(
       LoadBalancer balancer,

@@ -101,8 +101,7 @@ class IsolateRunner implements Runner {
   ///  .timeout(new Duration(...), onTimeout: () => print("No response"));
   /// ```
   Future<void> kill({Duration timeout = const Duration(seconds: 1)}) {
-    final onExit =
-        singleResponseFutureWithoutTimeout(isolate.addOnExitListener);
+    final onExit = singleResponseFuture(isolate.addOnExitListener);
     if (Duration.zero == timeout) {
       isolate.kill(priority: Isolate.immediate);
       return onExit;
@@ -132,7 +131,7 @@ class IsolateRunner implements Runner {
     var channel = SingleResponseChannel(
         callback: _kTrue, timeout: timeout, timeoutValue: false);
     isolate.ping(channel.port);
-    return channel.result.then((result) => result ?? false);
+    return channel.result.then((result) => result);
   }
 
   static bool _kTrue(_) => true;

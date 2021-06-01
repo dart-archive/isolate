@@ -20,7 +20,7 @@ Future<Future<Object?> Function()> runHttpServer(
 }
 
 Future<Object?> _sendStop(SendPort stopPort) =>
-    singleResponseFutureWithoutTimeout(stopPort.send);
+    singleResponseFuture(stopPort.send);
 
 Future<SendPort> _startHttpServer(List<Object?> args) async {
   var port = args[0] as int;
@@ -30,7 +30,7 @@ Future<SendPort> _startHttpServer(List<Object?> args) async {
       await HttpServer.bind(InternetAddress.anyIPv6, port, shared: true);
   await listener.start(server);
 
-  return singleCallbackPortWithoutTimeout((SendPort resultPort) {
+  return singleCallbackPort((SendPort resultPort) {
     sendFutureResult(Future.sync(listener.stop), resultPort);
   });
 }

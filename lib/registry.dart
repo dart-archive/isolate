@@ -157,10 +157,10 @@ class Registry<T> {
     }
     var completer = Completer<Capability>();
     var port = singleCompletePort(completer,
-        callback: (List response) {
+        callback: (List<Object?> response) {
           assert(cache.isAdding(element));
-          final id = response[0] as int;
-          final removeCapability = response[1] as Capability;
+          var id = response[0] as int;
+          var removeCapability = response[1] as Capability;
           cache.register(id, element);
           return removeCapability;
         },
@@ -219,7 +219,7 @@ class Registry<T> {
   ///
   /// Fails if any of the elements are not in the registry.
   Future<void> removeTags(Iterable<T> elements, Iterable tags) {
-    List ids = elements.map(_getId).toList(growable: false);
+    var ids = elements.map(_getId).toList(growable: false);
     tags = tags.toList(growable: false);
     var completer = Completer<void>();
     var port = singleCompletePort(completer, timeout: _timeout);
@@ -419,7 +419,7 @@ class RegistryManager {
     replyPort.send(true);
   }
 
-  void _addTags(List<int> ids, List tags, SendPort replyPort) {
+  void _addTags(List<int> ids, List<Object?> tags, SendPort replyPort) {
     assert(tags.isNotEmpty);
     for (var id in ids) {
       var entry = _entries[id];
