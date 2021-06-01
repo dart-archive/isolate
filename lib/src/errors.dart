@@ -18,6 +18,7 @@ class MultiError extends Error {
   // in the output.
   // If there are too many errors, they will all get at least one line.
   static const int _maxLines = 55;
+
   // Minimum number of lines in the toString for each error.
   static const int _minLinesPerError = 1;
 

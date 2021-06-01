@@ -45,7 +45,8 @@ void testLookup() {
       return registry.lookup();
     }).then<Null>((all) {
       expect(all.length, 10);
-      expect(all.map((v) => v.id).toList()..sort(),
+      expect(all.map((v) => v.id).toList()
+        ..sort(),
           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     }).whenComplete(regman.close);
   });
@@ -61,7 +62,8 @@ void testLookup() {
       return registry.lookup(tags: [Oddity.odd]);
     }).then<Null>((all) {
       expect(all.length, 5);
-      expect(all.map((v) => v.id).toList()..sort(), [1, 3, 5, 7, 9]);
+      expect(all.map((v) => v.id).toList()
+        ..sort(), [1, 3, 5, 7, 9]);
     }).whenComplete(regman.close);
   });
 
@@ -94,7 +96,8 @@ void testLookup() {
       return registry.lookup(tags: [2, 3]);
     }).then<Null>((all) {
       expect(all.length, 5);
-      expect(all.map((v) => v.id).toList()..sort(), [0, 6, 12, 18, 24]);
+      expect(all.map((v) => v.id).toList()
+        ..sort(), [0, 6, 12, 18, 24]);
     }).whenComplete(regman.close);
   });
 

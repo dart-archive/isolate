@@ -24,8 +24,7 @@ void ignore(_) {}
 List<Object?> list1(Object? v1) => List.filled(1, v1);
 
 /// Create a two-element fixed-length list.
-List<Object?> list2(Object? v1, Object? v2) => List.filled(2, v1)
-  ..[1] = v2;
+List<Object?> list2(Object? v1, Object? v2) => List.filled(2, v1)..[1] = v2;
 
 /// Create a three-element fixed-length list.
 List<Object?> list3(Object? v1, Object? v2, Object? v3) => List.filled(3, v1)

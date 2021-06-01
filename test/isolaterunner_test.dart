@@ -109,5 +109,7 @@ void testIsolateFunctions() {
 dynamic id(x) => x;
 
 var _global;
+
 dynamic getGlobal(_) => _global;
+
 void setGlobal(v) => _global = v;

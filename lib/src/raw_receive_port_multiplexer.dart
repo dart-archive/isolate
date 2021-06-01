@@ -56,6 +56,7 @@ class _MultiplexRawReceivePort implements RawReceivePort {
 class _MultiplexSendPort implements SendPort {
   final SendPort _sendPort;
   final int _id;
+
   _MultiplexSendPort(this._id, this._sendPort);
 
   @override
