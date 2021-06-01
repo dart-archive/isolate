@@ -98,7 +98,7 @@ class Registry<T> {
   // The cache is stored in an [Expando], not on the object.
   // This allows sending the `Registry` object through a `SendPort` without
   // also copying the cache.
-  static final Expando _caches = Expando();
+  static final Expando<_RegistryCache> _caches = Expando<_RegistryCache>();
 
   /// Port for sending command to the central registry manager.
   final SendPort _commandPort;
@@ -121,13 +121,7 @@ class Registry<T> {
       : _commandPort = commandPort,
         _timeout = timeout;
 
-  _RegistryCache get _cache {
-    var cache = _caches[this] as _RegistryCache?;
-    if (cache != null) return cache;
-    cache = _RegistryCache();
-    _caches[this] = cache;
-    return cache;
-  }
+  _RegistryCache get _cache => _caches[this] ??= _RegistryCache();
 
   /// Check and get the identity of an element.
   ///
