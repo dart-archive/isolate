@@ -254,13 +254,11 @@ class Registry<T> {
       // Response is even-length list of (id, element) pairs.
       var cache = _cache;
       var count = response.length ~/ 2;
-      var result = List<T?>.filled(count, null);
-      for (var i = 0; i < count; i++) {
-        var id = response[i * 2] as int;
-        var element = response[i * 2 + 1];
-        element = cache.register(id, element) as T;
-        result[i] = element;
-      }
+      var result = List<T>.generate(
+          count,
+          (i) =>
+              cache.register(response[i * 2] as int, response[i * 2 + 1]) as T,
+          growable: false);
       return result;
     }, timeout: _timeout);
     _commandPort.send(list4(_findValue, tags, max, port));
