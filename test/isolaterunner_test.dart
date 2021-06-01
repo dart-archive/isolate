@@ -38,8 +38,8 @@ Future testSeparateIsolates() {
   // Check that each isolate has its own _global variable.
   return Future.wait(Iterable.generate(2, (_) => IsolateRunner.spawn()))
       .then((runners) {
-    Future runAll(Function(IsolateRunner runner, int index) action) {
-      var indices = Iterable.generate(runners.length);
+    Future runAll(Future Function(IsolateRunner runner, int index) action) {
+      final indices = Iterable<int>.generate(runners.length);
       return Future.wait(indices.map((i) => action(runners[i], i)));
     }
 
@@ -109,5 +109,7 @@ void testIsolateFunctions() {
 dynamic id(x) => x;
 
 var _global;
+
 dynamic getGlobal(_) => _global;
+
 void setGlobal(v) => _global = v;

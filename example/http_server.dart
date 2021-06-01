@@ -12,24 +12,25 @@ import 'package:isolate/isolate_runner.dart';
 import 'package:isolate/ports.dart';
 import 'package:isolate/runner.dart';
 
-Future<Future<Object> Function()> runHttpServer(
+Future<Future<Object?> Function()> runHttpServer(
     Runner runner, int port, HttpListener listener) async {
   var stopPort = await runner.run(_startHttpServer, [port, listener]);
 
   return () => _sendStop(stopPort);
 }
 
-Future _sendStop(SendPort stopPort) => singleResponseFuture(stopPort.send);
+Future<Object?> _sendStop(SendPort stopPort) =>
+    singleResponseFutureWithoutTimeout(stopPort.send);
 
-Future<SendPort> _startHttpServer(List args) async {
-  int port = args[0];
-  HttpListener listener = args[1];
+Future<SendPort> _startHttpServer(List<Object?> args) async {
+  var port = args[0] as int;
+  var listener = args[1] as HttpListener;
 
   var server =
       await HttpServer.bind(InternetAddress.anyIPv6, port, shared: true);
   await listener.start(server);
 
-  return singleCallbackPort((SendPort resultPort) {
+  return singleCallbackPortWithoutTimeout((SendPort resultPort) {
     sendFutureResult(Future.sync(listener.stop), resultPort);
   });
 }
@@ -41,6 +42,7 @@ Future<SendPort> _startHttpServer(List args) async {
 /// The object should be sendable to an equivalent isolate.
 abstract class HttpListener {
   Future start(HttpServer server);
+
   Future stop();
 }
 
@@ -53,7 +55,7 @@ class EchoHttpListener implements HttpListener {
   static final _id = Isolate.current.hashCode;
   final SendPort _counter;
 
-  StreamSubscription _subscription;
+  StreamSubscription? _subscription;
 
   EchoHttpListener(this._counter);
 
@@ -77,8 +79,7 @@ class EchoHttpListener implements HttpListener {
   @override
   Future stop() async {
     print('Stopping isolate $_id');
-    await _subscription.cancel();
-    _subscription = null;
+    await _subscription?.cancel();
   }
 }
 
@@ -97,12 +98,13 @@ void main(List<String> args) async {
       await ServerSocket.bind(InternetAddress.anyIPv6, port, shared: true);
 
   port = socket.port;
-  var isolates = await Future.wait(
+  var isolates = await Future.wait<IsolateRunner>(
       Iterable.generate(5, (_) => IsolateRunner.spawn()), cleanUp: (isolate) {
     isolate.close();
   });
 
-  var stoppers = await Future.wait(isolates.map((IsolateRunner isolate) {
+  var stoppers =
+      await Future.wait<Function>(isolates.map((IsolateRunner isolate) {
     return runHttpServer(isolate, socket.port, listener);
   }), cleanUp: (shutdownServer) {
     shutdownServer();
