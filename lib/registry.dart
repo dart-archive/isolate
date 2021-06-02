@@ -32,7 +32,7 @@ const int _findValue = 5;
 ///
 /// A [Registry] object caches objects found using the [lookup]
 /// method, or added using [add], and returns the same object every time
-/// they are requested.
+/// it is requested.
 /// A different [Registry] object that works on the same underlying registry,
 /// will not preserve the identity of elements
 ///
@@ -44,7 +44,7 @@ const int _findValue = 5;
 /// See [SendPort] for details on the restrictions on objects which can be sent
 /// between isolates.
 ///
-/// A registry can be sued to make a number of object available to separate
+/// A registry can be used to make a number of objects available to separate
 /// workers in different isolates, for example ones created using
 /// [IsolateRunner], without sending all the objects to all the isolates.
 /// A worker can then request the data it needs, and it can add new data
@@ -100,7 +100,7 @@ class Registry<T> {
   // also copying the cache.
   static final Expando<_RegistryCache> _caches = Expando<_RegistryCache>();
 
-  /// Port for sending command to the central registry manager.
+  /// Port for sending commands to the central registry manager.
   final SendPort _commandPort;
 
   /// Create a registry linked to a [RegistryManager] through [commandPort].
