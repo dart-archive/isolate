@@ -1,3 +1,10 @@
+## 2.1.0
+
+* Migrate to null safety.
+* Add `singleResponseFutureWithTimeout` and `singleCallbackPortWithTimeout`,
+  while deprecating the timeout functionality of
+  `singleResponseFuture` and `singleCallbackPort`.
+
 ## 2.0.3
 
 * Update SDK requirements.

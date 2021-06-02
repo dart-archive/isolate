@@ -208,8 +208,9 @@ class IsolateRunner implements Runner {
   ///
   /// The stream closes when the isolate shuts down.
   ///
-  /// Listening to the stream again after the isolate has shut down
-  /// will not yield any events at all.
+  /// If the isolate shuts down while noone is listening on this stream,
+  /// the stream will not be closed, and listening to the stream again
+  /// after the isolate has shut down will not yield any events.
   Stream<Never> get errors {
     var controller = StreamController<Never>.broadcast(sync: true);
     controller.onListen = () {
