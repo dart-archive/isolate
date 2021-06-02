@@ -7,9 +7,10 @@ library isolate.load_balancer;
 
 import 'dart:async' show Future, FutureOr;
 
+import 'package:collection/collection.dart' show PriorityQueue;
+
 import 'runner.dart';
 import 'src/errors.dart';
-import 'src/priority_queue.dart';
 import 'src/util.dart';
 
 /// A pool of runners, ordered by load.
@@ -17,11 +18,17 @@ import 'src/util.dart';
 /// Keeps a pool of runners,
 /// and allows running function through the runner with the lowest current load.
 class LoadBalancer implements Runner {
-  // A heap-based priority queue of entries, prioritized by `load`.
-  // Each entry has its own entry in the queue, for faster update.
+  /// A heap-based priority queue of entries, prioritized by `load`.
+  ///
+  /// For consistency, all operations which change the load of the entry must happen
+  /// when the entry is not in the queue, except if the change is guaranteed to not
+  /// change the priority order (in particular, increasing the load of all elements
+  /// by the same amount).
   PriorityQueue<_LoadBalancerEntry> _queue;
 
-  // Whether [stop] has been called.
+  /// The future returned by [stop].
+  ///
+  /// Is `null` until [stop] is first called.
   Future<void>? _stopFuture;
 
   /// Create a load balancer backed by the [Runner]s of [runners].
@@ -101,11 +108,11 @@ class LoadBalancer implements Runner {
     }
     var result = List<FutureOr<R>>.filled(count, _defaultFuture);
     if (count == length) {
+      var index = 0;
       // No need to change the order of entries in the queue.
-      for (var i = 0; i < _queue.unorderedElements.length; i++) {
-        var entry = _queue.unorderedElements.elementAt(i);
+      for (var entry in _queue.unorderedElements) {
         entry.load += load;
-        result[i] =
+        result[index++] =
             entry.run(this, load, function, argument, timeout, onTimeout);
       }
     } else {
@@ -113,8 +120,6 @@ class LoadBalancer implements Runner {
       // command on each, then add them back to the queue.
       // This avoids running the same command twice in the same
       // isolate.
-      // We can't assume that the first [count] entries in the
-      // heap list are the least loaded.
       var entries = List<_LoadBalancerEntry>.generate(
         count,
         (_) => _queue.removeFirst(),
@@ -131,6 +136,7 @@ class LoadBalancer implements Runner {
     return result;
   }
 
+  /// A stand-in future which can be used as a default value.
   static final _defaultFuture = Future<Never>.error('')..catchError((_) {});
 
   @override
@@ -162,8 +168,11 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
     return runner
         .run<R, P>(function, argument, timeout: timeout, onTimeout: onTimeout)
         .whenComplete(() {
-      this.load -= load;
-      balancer._queue.add(this);
+      var queue = balancer._queue;
+      if (queue.remove(this)) {
+        this.load -= load;
+        queue.add(this);
+      }
     });
   }
 
