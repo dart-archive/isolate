@@ -101,8 +101,7 @@ class IsolateRunner implements Runner {
   ///  .timeout(new Duration(...), onTimeout: () => print("No response"));
   /// ```
   Future<void> kill({Duration timeout = const Duration(seconds: 1)}) {
-    final onExit =
-        singleResponseFutureWithoutTimeout(isolate.addOnExitListener);
+    final onExit = singleResponseFuture(isolate.addOnExitListener);
     if (Duration.zero == timeout) {
       isolate.kill(priority: Isolate.immediate);
       return onExit;
@@ -128,14 +127,10 @@ class IsolateRunner implements Runner {
   /// Guaranteed to only complete after all previous sent isolate commands
   /// (like pause and resume) have been handled.
   /// Paused isolates do respond to ping requests.
-  Future<bool> ping({Duration timeout = const Duration(seconds: 1)}) {
-    var channel = SingleResponseChannel(
-        callback: _kTrue, timeout: timeout, timeoutValue: false);
-    isolate.ping(channel.port);
-    return channel.result.then((result) => result ?? false);
-  }
-
-  static bool _kTrue(_) => true;
+  Future<bool> ping({Duration timeout = const Duration(seconds: 1)}) =>
+      singleResponseFutureWithTimeout((port) {
+        isolate.ping(port, response: true);
+      }, timeout, false);
 
   /// Pauses the isolate.
   ///
@@ -147,12 +142,14 @@ class IsolateRunner implements Runner {
   ///
   /// If [resumeCapability] is omitted, it defaults to the [isolate]'s
   /// [Isolate.pauseCapability].
+  /// If the isolate has no pause capability, nothing happens.
   ///
   /// Calling pause more than once with the same `resumeCapability`
   /// has no further effect. Only a single call to [resume] is needed
   /// to resume the isolate.
   void pause([Capability? resumeCapability]) {
     resumeCapability ??= isolate.pauseCapability;
+    if (resumeCapability == null) return;
     isolate.pause(resumeCapability);
   }
 
@@ -160,6 +157,7 @@ class IsolateRunner implements Runner {
   ///
   /// If [resumeCapability] is omitted, it defaults to the isolate's
   /// [Isolate.pauseCapability].
+  /// If the isolate has no pause capability, nothing happens.
   ///
   /// Even if `pause` has been called more than once with the same
   /// `resumeCapability`, a single resume call with stop the pause.
@@ -175,6 +173,12 @@ class IsolateRunner implements Runner {
   /// returns the result, whether it returned a value or threw.
   /// If the call returns a [Future], the final result of that future
   /// will be returned.
+  ///
+  /// If [timeout] is provided, and the returned future does not complete
+  /// before that duration has passed,
+  /// the [onTimeout] action is executed instead, and its result (whether it
+  /// returns or throws) is used as the result of the returned future.
+  /// If [onTimeout] is omitted, it defaults to throwing a[TimeoutException].
   ///
   /// This works similar to the arguments to [Isolate.spawn], except that
   /// it runs in the existing isolate and the return value is returned to
@@ -203,34 +207,35 @@ class IsolateRunner implements Runner {
   /// as errors in the stream. Be ready to handle the errors.
   ///
   /// The stream closes when the isolate shuts down.
-  Stream get errors {
-    var controller = StreamController.broadcast(sync: true);
-    var port = RawReceivePort();
-    void handleError(message) {
-      if (message == null) {
-        // Isolate shutdown.
+  ///
+  /// If the isolate shuts down while noone is listening on this stream,
+  /// the stream will not be closed, and listening to the stream again
+  /// after the isolate has shut down will not yield any events.
+  Stream<Never> get errors {
+    var controller = StreamController<Never>.broadcast(sync: true);
+    controller.onListen = () {
+      var port = RawReceivePort();
+      port.handler = (message) {
+        if (message == null) {
+          // Isolate shutdown.
+          port.close();
+          controller.close();
+        } else {
+          // Uncaught error.
+          final errorDescription = message[0] as String;
+          final stackDescription = message[1] as String;
+          var error = RemoteError(errorDescription, stackDescription);
+          controller.addError(error, error.stackTrace);
+        }
+      };
+      isolate.addErrorListener(port.sendPort);
+      isolate.addOnExitListener(port.sendPort);
+      controller.onCancel = () {
         port.close();
-        controller.close();
-      } else {
-        // Uncaught error.
-        final errorDescription = message[0] as String;
-        final stackDescription = message[1] as String;
-        var error = RemoteError(errorDescription, stackDescription);
-        controller.addError(error, error.stackTrace);
-      }
-    }
-
-    controller
-      ..onListen = () {
-        port.handler = handleError;
-        isolate.addErrorListener(port.sendPort);
-        isolate.addOnExitListener(port.sendPort);
-      }
-      ..onCancel = () {
         isolate.removeErrorListener(port.sendPort);
         isolate.removeOnExitListener(port.sendPort);
-        port.close();
       };
+    };
     return controller.stream;
   }
 
@@ -242,9 +247,8 @@ class IsolateRunner implements Runner {
   /// the returned future will be completed after one second,
   /// using [ping] to check if the isolate is still alive.
   Future<void>? get onExit {
-    // TODO(lrn): Is there a way to see if an isolate is dead
-    // so we can close the receive port for this future?
-    // Using [ping] for now.
+    // Using [ping] to see if the isolate is dead.
+    // Can't distinguish that from a slow-to-answer isolate.
     if (_onExitFuture == null) {
       var channel = SingleResponseChannel<void>();
       isolate.addOnExitListener(channel.port);

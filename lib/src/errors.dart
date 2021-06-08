@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(lrn): This should be in package:async?
 /// Helper functions for working with errors.
 ///
 /// The [MultiError] class combines multiple errors into one object,
@@ -127,7 +126,7 @@ class MultiError extends Error {
     for (var future in futures) {
       var i = count;
       count++;
-      future.then<Null>((v) {
+      future.then<void>((v) {
         if (!hasError) {
           results[i] = v;
         } else if (cleanUp != null) {

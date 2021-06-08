@@ -27,12 +27,11 @@ class Runner {
   /// Waits for the result of the call, and completes the returned future
   /// with the result, whether it's a value or an error.
   ///
-  /// If the returned future does not complete before `timeLimit` has passed,
+  /// If [timeout] is provided, and the returned future does not complete
+  /// before that duration has passed,
   /// the [onTimeout] action is executed instead, and its result (whether it
   /// returns or throws) is used as the result of the returned future.
-  ///
-  /// If `onTimeout` is omitted, a timeout will cause the returned future to
-  /// complete with a [TimeoutException].
+  /// If [onTimeout] is omitted, it defaults to throwing a[TimeoutException].
   ///
   /// The default implementation runs the function in the current isolate.
   Future<R> run<R, P>(FutureOr<R> Function(P argument) function, P argument,

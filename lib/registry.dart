@@ -157,10 +157,10 @@ class Registry<T> {
     }
     var completer = Completer<Capability>();
     var port = singleCompletePort(completer,
-        callback: (List response) {
+        callback: (List<Object?> response) {
           assert(cache.isAdding(element));
-          final id = response[0] as int;
-          final removeCapability = response[1] as Capability;
+          var id = response[0] as int;
+          var removeCapability = response[1] as Capability;
           cache.register(id, element);
           return removeCapability;
         },
@@ -175,22 +175,24 @@ class Registry<T> {
     return completer.future;
   }
 
-  /// Remove the element from the registry.
+  /// Removes the [element] from the registry.
   ///
-  /// Returns `true` if removing the element succeeded, or `false` if the
-  /// elements wasn't in the registry, or if it couldn't be removed.
+  /// Returns `true` if removing the element succeeded, and `false` if the
+  /// elements either wasn't in the registry, or it couldn't be removed.
   ///
   /// The [removeCapability] must be the same capability returned by [add]
   /// when the object was added. If the capability is wrong, the
-  /// object is not removed, and this function returns false.
+  /// object is not removed, and this function returns `false`.
   Future<bool> remove(T element, Capability removeCapability) {
     var id = _cache.id(element);
     if (id == null) {
+      // If the element is not in the cache, then it was not a value
+      // that originally came from the registry.
       return Future<bool>.value(false);
     }
     var completer = Completer<bool>();
     var port = singleCompletePort(completer, callback: (bool result) {
-      _cache.remove(id);
+      if (result) _cache.remove(id);
       return result;
     }, timeout: _timeout);
     _commandPort.send(list4(_removeValue, id, removeCapability, port));
@@ -218,8 +220,8 @@ class Registry<T> {
   /// before or not.
   ///
   /// Fails if any of the elements are not in the registry.
-  Future<void> removeTags(Iterable<T> elements, Iterable tags) {
-    List ids = elements.map(_getId).toList(growable: false);
+  Future<void> removeTags(Iterable<T> elements, Iterable<Object?> tags) {
+    var ids = elements.map(_getId).toList(growable: false);
     tags = tags.toList(growable: false);
     var completer = Completer<void>();
     var port = singleCompletePort(completer, timeout: _timeout);
@@ -227,7 +229,7 @@ class Registry<T> {
     return completer.future;
   }
 
-  Future<void> _addTags(List<int> ids, Iterable tags) {
+  Future<void> _addTags(List<int> ids, Iterable<Object?> tags) {
     tags = tags.toList(growable: false);
     var completer = Completer<void>();
     var port = singleCompletePort(completer, timeout: _timeout);
@@ -268,8 +270,15 @@ class Registry<T> {
 
 /// Isolate-local cache used by a [Registry].
 ///
-/// Maps between id-numbers and elements.
-/// An object is considered an element of the registry if it
+/// Maps between id numbers and elements.
+///
+/// Each instance of [Registry] has its own cache,
+/// and only considers elements part of the registry
+/// if they are registered in its cache.
+/// An object becomes registered either when calling
+/// [add] on that particular [Registry] instance,
+/// or when fetched using [lookup] through that
+/// registry instance.
 class _RegistryCache {
   // Temporary marker until an object gets an id.
   static const int _beingAdded = -1;
@@ -419,7 +428,7 @@ class RegistryManager {
     replyPort.send(true);
   }
 
-  void _addTags(List<int> ids, List tags, SendPort replyPort) {
+  void _addTags(List<int> ids, List<Object?> tags, SendPort replyPort) {
     assert(tags.isNotEmpty);
     for (var id in ids) {
       var entry = _entries[id];
