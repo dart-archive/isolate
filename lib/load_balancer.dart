@@ -5,7 +5,7 @@
 /// A load-balancing runner pool.
 library isolate.load_balancer;
 
-import 'dart:async' show Future, FutureOr;
+import 'dart:async' show Completer, Future, FutureOr;
 
 import 'runner.dart';
 import 'src/errors.dart';
@@ -24,7 +24,9 @@ import 'src/util.dart';
 /// call methods on the load balancer.
 class LoadBalancer implements Runner {
   /// A stand-in future which can be used as a default value.
-  static final _defaultFuture = Future<Never>.error('')..catchError((_) {});
+  ///
+  /// The future never completes, so it should not be exposed to users.
+  static final _defaultFuture = Completer<Never>().future;
 
   /// Reusable empty fixed-length list.
   static final _emptyQueue = List<_LoadBalancerEntry>.empty(growable: false);
@@ -84,10 +86,12 @@ class LoadBalancer implements Runner {
     }).then((runners) => LoadBalancer(runners));
   }
 
-  static List<_LoadBalancerEntry> _createEntries(Iterable<Runner> runners) =>
-      runners
-          .map<_LoadBalancerEntry>((runner) => _LoadBalancerEntry(runner))
-          .toList(growable: false);
+  static List<_LoadBalancerEntry> _createEntries(Iterable<Runner> runners) {
+    var index = 0;
+    return runners
+        .map((runner) => _LoadBalancerEntry(runner, index++))
+        .toList(growable: false);
+  }
 
   /// Execute the command in the currently least loaded isolate.
   ///
@@ -133,18 +137,18 @@ class LoadBalancer implements Runner {
   /// If [timeout] and [onTimeout] are provided, they are forwarded to
   /// the runners running the function, which will handle any timeouts
   /// as normal.
-  List<FutureOr<R>> runMultiple<R, P>(
+  List<Future<R>> runMultiple<R, P>(
       int count, FutureOr<R> Function(P argument) function, P argument,
       {Duration? timeout, FutureOr<R> Function()? onTimeout, int load = 100}) {
     RangeError.checkValueInInterval(count, 1, _length, 'count');
     RangeError.checkNotNegative(load, 'load');
     if (count == 1) {
-      return List<FutureOr<R>>.filled(
+      return List<Future<R>>.filled(
           1,
           run(function, argument,
               load: load, timeout: timeout, onTimeout: onTimeout));
     }
-    var result = List<FutureOr<R>>.filled(count, _defaultFuture);
+    var result = List<Future<R>>.filled(count, _defaultFuture);
     if (count == _length) {
       // No need to change the order of entries in the queue.
       for (var i = 0; i < _length; i++) {
@@ -284,7 +288,7 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
   ///
   /// Maintained when entries move around the queue.
   /// Only needed for [LoadBalancer._decreaseLoad].
-  int queueIndex = -1;
+  int queueIndex;
 
   // The current load on the isolate.
   int load = 0;
@@ -292,7 +296,7 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
   // The service used to execute commands.
   Runner runner;
 
-  _LoadBalancerEntry(this.runner);
+  _LoadBalancerEntry(this.runner, this.queueIndex);
 
   Future<R> run<R, P>(
       LoadBalancer balancer,
@@ -304,7 +308,7 @@ class _LoadBalancerEntry implements Comparable<_LoadBalancerEntry> {
     return runner
         .run<R, P>(function, argument, timeout: timeout, onTimeout: onTimeout)
         .whenComplete(() {
-      balancer._decreaseLoad(this, -load);
+      balancer._decreaseLoad(this, load);
     });
   }
 
