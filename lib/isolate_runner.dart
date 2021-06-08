@@ -247,9 +247,8 @@ class IsolateRunner implements Runner {
   /// the returned future will be completed after one second,
   /// using [ping] to check if the isolate is still alive.
   Future<void>? get onExit {
-    // TODO(lrn): Is there a way to see if an isolate is dead
-    // so we can close the receive port for this future?
-    // Using [ping] for now.
+    // Using [ping] to see if the isolate is dead.
+    // Can't distinguish that from a slow-to-answer isolate.
     if (_onExitFuture == null) {
       var channel = SingleResponseChannel<void>();
       isolate.addOnExitListener(channel.port);
