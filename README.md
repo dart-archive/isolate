@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/dart-lang/isolate.svg?branch=master)](https://travis-ci.org/dart-lang/isolate)
+[![Dart CI](https://github.com/dart-lang/isolate/actions/workflows/test-package.yml/badge.svg)](https://github.com/dart-lang/isolate/actions/workflows/test-package.yml)
 
 Helps with isolates and isolate communication in Dart.
 Requires the `dart:isolate` library being available.
