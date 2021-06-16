@@ -1,3 +1,9 @@
+## 2.1.1
+
+* **DISCONTINUE PACKAGE**
+  This package is no longer maintained by the Dart team.
+* Make `IsolateRunner.close` not hang if called more than once.
+
 ## 2.1.0
 
 * Migrate to null safety.
