@@ -1,7 +1,7 @@
 name: isolate
 version: 2.1.1
-author: Dart Team <misc@dartlang.org>
 description: >-
+  DISCONTINUED PACKAGE
   Utility functions and classes related to the 'dart:isolate' library.
 homepage: https://github.com/dart-lang/isolate
 
