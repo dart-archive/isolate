@@ -32,6 +32,11 @@ class IsolateRunner implements Runner {
   /// Future returned by [onExit]. Set when [onExit] is first read.
   Future<void>? _onExitFuture;
 
+  /// Future returned by [close].
+  ///
+  /// Avoids hanging if calling [close] twice.
+  Future<void>? _closeFuture;
+
   /// Create an [IsolateRunner] wrapper for [isolate]
   ///
   /// The preferred way to create an `IsolateRunner` is to use [spawn]
@@ -78,9 +83,11 @@ class IsolateRunner implements Runner {
   /// life cycle.
   @override
   Future<void> close() {
+    var closeFuture = _closeFuture;
+    if (closeFuture != null) return closeFuture;
     var channel = SingleResponseChannel();
     _commandPort.send(list2(_shutdown, channel.port));
-    return channel.result.then(ignore);
+    return _closeFuture = channel.result.then(ignore);
   }
 
   /// Kills the isolate.

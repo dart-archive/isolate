@@ -10,15 +10,23 @@ import 'package:test/test.dart';
 const _ms = Duration(milliseconds: 1);
 
 void main() {
-  test('create-close', testCreateClose);
+  group('create-close', testCreateClose);
   test('create-run-close', testCreateRunClose);
   test('separate-isolates', testSeparateIsolates);
   group('isolate functions', testIsolateFunctions);
 }
 
-Future testCreateClose() {
-  return IsolateRunner.spawn().then((IsolateRunner runner) {
-    return runner.close();
+void testCreateClose() {
+  test('simple', () {
+    return IsolateRunner.spawn().then((IsolateRunner runner) {
+      return runner.close();
+    });
+  });
+  test('close twice', () async {
+    var runner = await IsolateRunner.spawn();
+    await runner.close();
+    // Shouldn't hang!
+    await runner.close();
   });
 }
 
