@@ -1,5 +1,12 @@
 [![Dart CI](https://github.com/dart-lang/isolate/actions/workflows/test-package.yml/badge.svg)](https://github.com/dart-lang/isolate/actions/workflows/test-package.yml)
 
+# DISCONTINUED
+
+This package has been discontinued, and will no longer be maintained.
+
+------------
+
+
 Helps with isolates and isolate communication in Dart.
 Requires the `dart:isolate` library being available.
 Isolates are not available for Dart on the web.
